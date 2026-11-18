@@ -6,6 +6,7 @@ Deterministic: same output every run (fixed random seed).
 import json
 import random
 
+from app.alhail.content import BUSINESS_AR
 from app.db import connect
 
 SOURCE = "https://alhail.com/sectors"
@@ -196,13 +197,33 @@ SIGNALS = [
     ("index-exchange", "2026-10-18", "Regulatory monitor", "New payment-services reporting requirements take effect next year; compliance plan in progress.", "info"),
 ]
 
+SOURCE_AR = {
+    "Loan book review": "مراجعة محفظة القروض", "Q3 management accounts": "الحسابات الإدارية للربع الثالث",
+    "Market monitor": "رصد السوق", "Operations update": "تحديث العمليات", "Board update": "تحديث مجلس الإدارة",
+    "Leasing update": "تحديث التأجير", "Regulatory monitor": "الرصد التنظيمي",
+}
+
+SIGNALS_AR = [  # same order as SIGNALS
+    "أخلّ المقترض SAMAA-C-017 (قطاع البناء) بتعهد نسبة تغطية خدمة الدين: 1.05 مقابل حد أدنى 1.20؛ متأخر 35 يومًا.",
+    "ارتفعت نسبة القروض المتعثرة إلى 4.6% مقابل 3.5% في الميزانية؛ وارتفعت مخصصات انخفاض القيمة مقارنة بالربع السابق.",
+    "جاءت الأرباح قبل الفوائد والضرائب والإهلاك دون الميزانية للربع الثاني على التوالي؛ وتأجّل بدء عقد إعادة تأهيل المحطة في مصر إلى الربع الأول 2027.",
+    "خفّض تحويل العملات قيمة محفظة التأجير في مصر بالدرهم هذا الربع.",
+    "توسيع برنامج تهيئة الموظفين الجدد؛ وعدد الموظفين مستقر.",
+    "أعداد الزوار فوق الميزانية للربع الثالث على التوالي؛ ونسبة الإشغال 95%.",
+    "نمو أحجام حفظ الأصول الرقمية؛ والودائع أعلى من الخطة.",
+    "توقيع ثلاثة عقود إيجار جديدة لقطع أراضٍ في آيكاد 2 خلال الربع.",
+    "عقدا إيجار لمستأجرَين في المبنى 5 بإعمار سكوير ينتهيان في الربع الأول 2027؛ ومفاوضات التجديد جارية.",
+    "متطلبات تقارير جديدة لخدمات الدفع تدخل حيز التنفيذ العام المقبل؛ وخطة الامتثال قيد التنفيذ.",
+]
+
 DDL = """
 drop schema if exists alhail cascade;
 create schema alhail;
 create table alhail.sector (id text primary key, name_en text, name_ar text, color text, sort int);
 create table alhail.business (
   id text primary key, sector_id text references alhail.sector, name_en text, name_ar text,
-  location text, relationship text, description text, facts jsonb, source_url text);
+  location text, relationship text, description text, facts jsonb, source_url text,
+  location_ar text, relationship_ar text, description_ar text);
 create table alhail.metric (
   business_id text references alhail.business, period text, metric text, label text, unit text,
   actual numeric, budget numeric, primary key (business_id, period, metric));
@@ -212,7 +233,8 @@ create table alhail.loan (
 create table alhail.exposure (
   business_id text references alhail.business, country text, period text, carrying_value_aed_m numeric, note text);
 create table alhail.signal (
-  id serial primary key, business_id text references alhail.business, date date, source text, summary text, severity text);
+  id serial primary key, business_id text references alhail.business, date date, source text, summary text, severity text,
+  source_ar text, summary_ar text);
 """
 
 
@@ -223,8 +245,8 @@ def seed():
         with conn.cursor() as cur:
             cur.executemany("insert into alhail.sector values (%s,%s,%s,%s,%s)", SECTORS)
             cur.executemany(
-                "insert into alhail.business values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                [(b[0], b[1], b[2], b[3], b[4], b[5], b[6], json.dumps(b[7]), SOURCE) for b in BUSINESSES],
+                "insert into alhail.business values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                [(b[0], b[1], b[2], b[3], b[4], b[5], b[6], json.dumps(b[7]), SOURCE, *BUSINESS_AR[b[0]]) for b in BUSINESSES],
             )
             metric_sql = "insert into alhail.metric values (%s,%s,%s,%s,%s,%s,%s)"
             cur.executemany(metric_sql, quarterly_financials(rng))
@@ -232,7 +254,9 @@ def seed():
             cur.executemany("insert into alhail.loan values (%s,%s,%s,%s,%s,%s,%s,%s,%s)", loan_rows(rng))
             cur.executemany("insert into alhail.exposure values (%s,%s,%s,%s,%s)", EXPOSURE)
             cur.executemany(
-                "insert into alhail.signal (business_id, date, source, summary, severity) values (%s,%s,%s,%s,%s)", SIGNALS
+                "insert into alhail.signal (business_id, date, source, summary, severity, source_ar, summary_ar) "
+                "values (%s,%s,%s,%s,%s,%s,%s)",
+                [(*s, SOURCE_AR[s[2]], SIGNALS_AR[i]) for i, s in enumerate(SIGNALS)],
             )
     print("Seeded alhail schema.")
 

@@ -26,7 +26,7 @@ def overview(period: str = LATEST):
     sectors = fetch_all("select * from alhail.sector order by sort")
     rows = fetch_all(
         """
-        select b.id, b.sector_id, b.name_en, b.name_ar, b.location, b.relationship,
+        select b.id, b.sector_id, b.name_en, b.name_ar, b.location, b.relationship, b.location_ar, b.relationship_ar,
                r.actual as revenue, r.budget as revenue_budget,
                e.actual as ebitda, e.budget as ebitda_budget,
                (select count(*) from alhail.signal s where s.business_id = b.id and s.severity in ('watch','alert')) as flags
@@ -41,7 +41,7 @@ def overview(period: str = LATEST):
         ev = (_num(r["ebitda"]) / _num(r["ebitda_budget"]) - 1) * 100
         rv = (_num(r["revenue"]) / _num(r["revenue_budget"]) - 1) * 100
         businesses.append({
-            **{k: r[k] for k in ("id", "sector_id", "name_en", "name_ar", "location", "relationship")},
+            **{k: r[k] for k in ("id", "sector_id", "name_en", "name_ar", "location", "relationship", "location_ar", "relationship_ar")},
             "revenue": _num(r["revenue"]), "revenue_var_pct": round(rv, 1),
             "ebitda": _num(r["ebitda"]), "ebitda_var_pct": round(ev, 1),
             "flags": r["flags"], "rag": rag(ev, r["flags"] > 0 and ev <= -5),
@@ -49,13 +49,14 @@ def overview(period: str = LATEST):
     trend_rows = fetch_all(
         "select business_id, period, actual::float, budget::float from alhail.metric "
         "where metric = 'ebitda' and period <= %(p)s order by period", {"p": period})
-    reasons = {r["business_id"]: r["summary"] for r in fetch_all(
-        "select distinct on (business_id) business_id, summary from alhail.signal "
+    reasons = {r["business_id"]: r for r in fetch_all(
+        "select distinct on (business_id) business_id, summary, summary_ar from alhail.signal "
         "where severity in ('watch','alert') order by business_id, severity = 'alert' desc, date desc")}
     for b in businesses:
         b["trend"] = [{"period": t["period"], "actual": t["actual"], "budget": t["budget"]}
                       for t in trend_rows if t["business_id"] == b["id"]]
-        b["reason"] = reasons.get(b["id"])
+        reason = reasons.get(b["id"]) or {}
+        b["reason"], b["reason_ar"] = reason.get("summary"), reason.get("summary_ar")
     totals = {
         "revenue": round(sum(b["revenue"] for b in businesses), 1),
         "ebitda": round(sum(b["ebitda"] for b in businesses), 1),
@@ -81,7 +82,8 @@ def business(bid: str):
         "select period, metric, label, unit, actual::float, budget::float from alhail.metric "
         "where business_id = %s order by metric, period", (bid,))
     signals = fetch_all(
-        "select date::text, source, summary, severity from alhail.signal where business_id = %s order by date desc", (bid,))
+        "select date::text, source, summary, severity, source_ar, summary_ar from alhail.signal "
+        "where business_id = %s order by date desc", (bid,))
     loans = fetch_all(
         "select ref, borrower, sector, outstanding_aed_m::float, dpd, dscr::float, dscr_min::float, status "
         "from alhail.loan where lender_id = %s order by case status when 'Covenant breach' then 0 when 'Watch' then 1 else 2 end, outstanding_aed_m desc", (bid,))
@@ -97,7 +99,8 @@ def business(bid: str):
 @router.get("/signals")
 def signals():
     return fetch_all(
-        "select s.date::text, s.business_id, b.name_en, b.name_ar, s.source, s.summary, s.severity "
+        "select s.date::text, s.business_id, b.sector_id, b.name_en, b.name_ar, s.source, s.summary, s.severity, "
+        "s.source_ar, s.summary_ar "
         "from alhail.signal s join alhail.business b on b.id = s.business_id order by s.date desc")
 
 
@@ -115,6 +118,43 @@ def copilot(req: ChatRequest):
         raise HTTPException(400, "The last message must be from the user")
     return StreamingResponse(chat(history), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+class BoardPackRequest(BaseModel):
+    period: str = LATEST
+    lang: str = "en"
+
+
+@router.post("/board-pack")
+def draft_board_pack(req: BoardPackRequest):
+    from app.alhail import boardpack  # imported here: boardpack.py imports this module
+
+    if req.lang not in ("en", "ar"):
+        raise HTTPException(400, "lang must be en or ar")
+    try:
+        return boardpack.build(req.period, req.lang)
+    except RuntimeError as e:  # AI call failed: report it in plain words
+        raise HTTPException(502, str(e)) from e
+
+
+@router.get("/board-pack")
+def get_board_pack(period: str = LATEST, lang: str = "en"):
+    from app.alhail import boardpack
+
+    pack = boardpack.load(period, lang)
+    if not pack:
+        raise HTTPException(404, "No board pack drafted yet for this quarter and language")
+    return pack
+
+
+@router.get("/board-pack/docx")
+def board_pack_docx(period: str = LATEST, lang: str = "en"):
+    from app.alhail import boardpack
+
+    pack = boardpack.load(period, lang) or boardpack.build(period, lang)
+    path = boardpack.to_docx(pack)
+    return FileResponse(path, filename=path.name,
+                        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @router.get("/documents")

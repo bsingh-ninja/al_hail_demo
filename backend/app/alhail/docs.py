@@ -12,37 +12,13 @@ from pathlib import Path
 from fpdf import FPDF
 from pypdf import PdfReader
 
+from app.alhail.content import RISK_ITEMS, commentary
 from app.db import connect, fetch_all
 
 DOC_DIR = Path(__file__).resolve().parents[2] / "generated" / "alhail" / "docs"
 QUARTERS = ["2026-Q2", "2026-Q3"]
 NAVY = (6, 43, 73)
 
-# Planted management commentary (simulated) that the copilot and board pack should find.
-COMMENTARY = {
-    ("atd", "2026-Q2"): "EBITDA was below budget as the ATD Egypt plant rehabilitation contract slipped by one quarter; "
-                        "fixed workshop costs were carried without the planned revenue. Management expects recovery in Q3.",
-    ("atd", "2026-Q3"): "EBITDA missed budget for a second consecutive quarter. The Egypt plant rehabilitation contract start "
-                        "has moved to Q1 2027 pending client financing. Order backlog is 12% below plan. Management proposes "
-                        "re-phasing the FY budget and redeploying two engineering teams to UAE overhaul work.",
-    ("samaa", "2026-Q3"): "Impairment charges rose as the NPL ratio increased to 4.6% against a 3.5% budget. Borrower SAMAA-C-017 "
-                          "(construction, AED 48.0m outstanding) breached its DSCR covenant (1.05 vs 1.20 minimum) and is 35 days "
-                          "past due. A standstill and restructuring proposal is under review; additional collateral requested. "
-                          "Construction-sector exposure is being capped at 25% of the book.",
-    ("samaa", "2026-Q2"): "Asset quality broadly stable; NPL ratio 3.9% vs 3.5% budget driven by two trading-sector accounts.",
-    ("sama-egypt", "2026-Q3"): "Lease portfolio grew in local currency, but currency translation reduced the AED value of the "
-                               "portfolio. Carrying value for the group fell from AED 312m to AED 289m, reflecting FX translation and "
-                               "higher provisions.",
-    ("transguard", "2026-Q3"): "Revenue in line with budget. Workforce onboarding programme expanded; headcount stable. "
-                               "Cash services volumes steady; new facilities contracts mobilised.",
-    ("dalma", "2026-Q3"): "Footfall ahead of budget for the third consecutive quarter; occupancy 95%. Two anchor-store renewals completed.",
-    ("re-investments", "2026-Q3"): "Two Emaar Square Building 5 tenants have leases expiring in Q1 2027; renewal negotiations are "
-                                   "under way. Occupancy remains above 89%.",
-    ("zand", "2026-Q3"): "Customer deposits continued to grow ahead of plan; digital-asset custody volumes increased.",
-    ("infra", "2026-Q3"): "Three new ICAD II plot leases signed in the quarter. ICADIN wastewater plant utilisation stable.",
-    ("index-exchange", "2026-Q3"): "Transfer volumes in line with plan. Compliance programme for new payment-services reporting "
-                                   "requirements is in progress.",
-}
 
 
 def _pdf(title: str, subtitle: str) -> FPDF:
@@ -118,7 +94,7 @@ def generate() -> list[Path]:
             _heading(pdf, "2. Financial performance vs budget")
             _table(pdf, rows)
             _heading(pdf, "3. Management commentary")
-            _para(pdf, COMMENTARY.get((b["id"], q), "Performance in line with plan; no material issues to report."))
+            _para(pdf, commentary(b["id"], q)[0])
             if b["id"] in ("samaa", "sama-egypt") and q == "2026-Q3":
                 loans = fetch_all(
                     "select ref, sector, outstanding_aed_m::float o, dpd, dscr::float, status from alhail.loan "
@@ -135,16 +111,9 @@ def generate() -> list[Path]:
     # Group risk committee minutes, Q3
     pdf = _pdf("Al Hail Holding: Group Risk Committee", "Minutes  |  Q3 2026 meeting")
     _heading(pdf, "Items discussed")
-    for item in [
-        "SAMAA Finance: the committee noted the DSCR covenant breach by borrower SAMAA-C-017 (AED 48.0m) and the rise "
-        "in NPL ratio to 4.6%. Action: SAMAA management to present a restructuring plan and collateral position by next meeting.",
-        "ATD: EBITDA below budget for two consecutive quarters due to the Egypt plant rehabilitation delay. Action: ATD to "
-        "submit a re-phased FY budget and mitigation plan.",
-        "Egypt exposure: group carrying value in Egypt (SAMA Finance and ATD Egypt) declined in Q3 on FX translation and "
-        "provisions. Action: Group Finance to report Egypt exposure quarterly with sensitivity to further currency moves.",
-        "Real estate: lease expiries at Emaar Square Building 5 in Q1 2027 noted; renewals in negotiation.",
-    ]:
-        _para(pdf, "- " + item)
+    names = {r["id"]: r["name_en"] for r in businesses}
+    for item in RISK_ITEMS:
+        _para(pdf, f"- {names[item['business']]}: {item['risk']} Action: {item['action']} Owner: {item['owner']}.")
         pdf.ln(1)
     path = DOC_DIR / "group_2026-Q3_risk-committee-minutes.pdf"
     pdf.output(str(path))
