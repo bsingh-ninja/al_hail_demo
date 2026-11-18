@@ -64,7 +64,7 @@ export default function Header() {
   const active = (href: string) => path === href || (href === "/" && path.startsWith("/business"));
 
   return (
-    <header className="sticky top-0 z-20 bg-header text-header-fg">
+    <header className="header-material sticky top-0 z-20 text-header-fg">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/alhail-mark.png" alt="Al Hail Holding" width={26} height={32} priority />

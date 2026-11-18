@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import Cited from "@/components/Cited";
+import { useDocSheet } from "@/components/DocumentSheet";
 import { RagPill, SeverityPill, Variance } from "@/components/ui";
 import { API, BoardPack, fmt, getJSON, postJSON } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -15,6 +16,14 @@ export default function BoardPackPage() {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
+  const [arrived, setArrived] = useState(0);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(""), 2600);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   useEffect(() => {
     setLoaded(false);
@@ -30,12 +39,14 @@ export default function BoardPackPage() {
     setError("");
     try {
       setPack(await postJSON<BoardPack>("/alhail/board-pack", { period: PERIOD, lang }));
+      setArrived((n) => n + 1);
+      setToast(t.packDrafted);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [lang]);
+  }, [lang, t.packDrafted]);
 
   return (
     <div className="mx-auto max-w-[920px] space-y-5">
@@ -70,7 +81,11 @@ export default function BoardPackPage() {
       {!busy && loaded && !pack && (
         <div className="rounded-lg border border-dashed border-border bg-surface p-10 text-center text-sm text-muted">{t.packEmpty}</div>
       )}
-      {!busy && pack && <Paper pack={pack} />}
+      {!busy && pack && <Paper key={arrived} pack={pack} />}
+
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4">
+        {toast && <div className="toast-material toast-in rounded-full px-4 py-2 text-sm font-semibold shadow-lg">{toast}</div>}
+      </div>
     </div>
   );
 }
@@ -91,8 +106,9 @@ function Section({ n, title, children }: { n: number; title: string; children: R
 
 function Paper({ pack }: { pack: BoardPack }) {
   const { t } = useLang();
+  const { openDoc } = useDocSheet();
   return (
-    <article className="rounded-sm bg-surface px-5 py-8 shadow-[0_1px_2px_rgba(6,43,73,0.06),0_12px_32px_-12px_rgba(6,43,73,0.18)] ring-1 ring-border sm:px-12 sm:py-12">
+    <article className="paper-arrive rounded-sm bg-surface px-5 py-8 shadow-[0_1px_2px_rgba(6,43,73,0.06),0_12px_32px_-12px_rgba(6,43,73,0.18)] ring-1 ring-border sm:px-12 sm:py-12">
       <header className="space-y-4 border-b-2 border-accent pb-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -255,7 +271,15 @@ function Paper({ pack }: { pack: BoardPack }) {
         <ul className="mt-2 grid gap-1 sm:grid-cols-2">
           {pack.sources.map((s) => (
             <li key={s.id}>
-              <a href={`${API}/alhail/documents/${s.id}/file`} target="_blank" rel="noreferrer" className="hover:text-primary hover:underline">
+              <a
+                href={`${API}/alhail/documents/${s.id}/file`}
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                  e.preventDefault();
+                  openDoc({ id: s.id, page: 1 });
+                }}
+                className="hover:text-primary hover:underline"
+              >
                 <span className="num font-semibold" dir="ltr">
                   [{s.cite}]
                 </span>{" "}

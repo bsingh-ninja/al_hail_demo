@@ -40,6 +40,7 @@ export default function CopilotPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const controller = useRef<AbortController | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,8 +55,10 @@ export default function CopilotPage() {
     setTurns([...history, { role: "assistant", content: "", tools: [] }]);
     setInput("");
     setBusy(true);
+    controller.current = new AbortController();
     try {
       const res = await fetch(`${API}/alhail/copilot`, {
+        signal: controller.current.signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: history.map(({ role, content }) => ({ role, content })) }),
@@ -85,8 +88,10 @@ export default function CopilotPage() {
         }
       }
     } catch (e) {
-      update((a) => ({ ...a, error: `Could not reach the copilot (${(e as Error).message}).` }));
+      if ((e as Error).name === "AbortError") update((a) => ({ ...a, error: a.content ? undefined : t.stopped }));
+      else update((a) => ({ ...a, error: `Could not reach the copilot (${(e as Error).message}).` }));
     } finally {
+      controller.current = null;
       setBusy(false);
     }
   }
@@ -104,7 +109,7 @@ export default function CopilotPage() {
             <button
               key={s}
               onClick={() => ask(s)}
-              className="rounded-xl border border-border bg-surface p-3 text-start text-sm hover:border-primary/40"
+              className="press-soft rounded-xl border border-border bg-surface p-3 text-start text-sm hover:border-primary/40"
             >
               {s}
             </button>
@@ -160,7 +165,7 @@ export default function CopilotPage() {
           e.preventDefault();
           ask(input);
         }}
-        className="sticky bottom-4 flex gap-2 rounded-2xl border border-border bg-surface p-2 shadow-sm"
+        className="sheet-material sticky bottom-4 flex gap-2 rounded-2xl border border-border p-2"
       >
         <input
           value={input}
@@ -169,13 +174,23 @@ export default function CopilotPage() {
           className="flex-1 bg-transparent px-3 py-2 text-sm outline-none"
           disabled={busy}
         />
-        <button
-          type="submit"
-          disabled={busy || !input.trim()}
-          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-fg disabled:opacity-40"
-        >
-          {t.ask}
-        </button>
+        {busy ? (
+          <button
+            type="button"
+            onClick={() => controller.current?.abort()}
+            className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink"
+          >
+            {t.stop}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-fg disabled:opacity-40"
+          >
+            {t.ask}
+          </button>
+        )}
       </form>
     </div>
   );

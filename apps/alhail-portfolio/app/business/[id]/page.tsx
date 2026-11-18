@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useDocSheet } from "@/components/DocumentSheet";
 import { Card, ErrorBox, Loading, SeverityPill, Variance } from "@/components/ui";
 import { API, BusinessDetail, fmt, getJSON, MetricRow, tr } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -13,6 +14,7 @@ const FINANCIAL = ["revenue", "ebitda", "net_profit"];
 export default function BusinessPage() {
   const { id } = useParams<{ id: string }>();
   const { t, lang } = useLang();
+  const { openDoc } = useDocSheet();
   const [d, setD] = useState<BusinessDetail | null>(null);
   const [error, setError] = useState("");
 
@@ -137,9 +139,12 @@ export default function BusinessPage() {
               <li key={doc.id}>
                 <a
                   href={`${API}/alhail/documents/${doc.id}/file`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/40"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                    e.preventDefault();
+                    openDoc({ id: doc.id, page: 1 });
+                  }}
+                  className="press-soft flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/40"
                 >
                   <span className="rounded bg-crit/10 px-1.5 py-0.5 text-[10px] font-bold text-crit">PDF</span>
                   <span className="flex-1 font-medium">Management accounts</span>

@@ -103,18 +103,42 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-manrope), var(--font-arabic), system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem; /* rem, so the layout scales with the reader's text size */
   line-height: 1.5;
+  letter-spacing: 0;
+  font-optical-sizing: auto;
+  /* ease light/dark switches instead of an abrupt brightness jump */
+  transition: background-color 250ms ease, color 250ms ease;
 }
 
 html[lang="ar"] body {
   font-family: var(--font-arabic), var(--font-manrope), system-ui, sans-serif;
 }
 
+/* Size-specific tracking and leading: tight on large type, neutral on body, a touch open on small labels */
 h1,
 h2,
 h3 {
   text-wrap: balance;
+}
+h1 {
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+}
+h2 {
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+}
+.text-xs,
+.text-\[11px\],
+.text-\[10\.5px\] {
+  letter-spacing: 0.01em;
+}
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] .text-xs {
+  letter-spacing: 0; /* Arabic is a connected script: never track it */
+  line-height: 1.35;
 }
 
 .num {
@@ -122,7 +146,7 @@ h3 {
 }
 
 .eyebrow {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -133,13 +157,127 @@ h3 {
   border-radius: 6px;
 }
 
+/* Response: feedback on press, not on release */
+.pressable,
+button,
+a[href] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* no 300ms tap delay */
+}
+.pressable:active,
+button:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform 100ms ease-out;
+}
+.press-soft:active {
+  transform: scale(0.99);
+  transition: transform 100ms ease-out;
+}
+
+/* Materials: translucent chrome with content scrolling underneath */
+.header-material {
+  background: color-mix(in srgb, var(--header) 82%, transparent);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08);
+}
+/* Scroll edge effect instead of a hard divider */
+.header-material::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 14px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--header) 18%, transparent), transparent);
+}
+.sheet-material {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 0 0 1px rgb(6 43 73 / 0.04), -24px 0 60px -20px rgb(6 43 73 / 0.35);
+}
+.toast-material {
+  background: color-mix(in srgb, var(--header) 88%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--header-fg);
+}
+
+/* The board paper settles in as a material arriving, not a plain fade */
+@keyframes paper-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.paper-arrive {
+  animation: paper-arrive 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.toast-in {
+  animation: toast-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Reduced motion: gentle cross-fades instead of movement */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-name: none !important;
     scroll-behavior: auto !important;
+  }
+  .pressable:active,
+  button:active,
+  .press-soft:active {
+    transform: none !important;
+  }
+  .paper-arrive,
+  .toast-in {
+    animation: none !important;
+  }
+}
+
+/* Reduced transparency: frosted surfaces become solid */
+@media (prefers-reduced-transparency: reduce) {
+  .header-material,
+  .toast-material {
+    background: var(--header);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .sheet-material {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Increased contrast: solid surfaces with defined edges */
+@media (prefers-contrast: more) {
+  .header-material {
+    background: var(--header);
+    backdrop-filter: none;
+    box-shadow: inset 0 -1px 0 var(--header-fg);
+  }
+  .sheet-material {
+    background: var(--surface);
+    backdrop-filter: none;
+    border-color: var(--text);
   }
 }
 

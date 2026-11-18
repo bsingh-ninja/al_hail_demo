@@ -62,7 +62,7 @@ export default function Cockpit() {
               <li key={b.id}>
                 <Link
                   href={`/business/${b.id}`}
-                  className={`group grid items-center gap-x-6 gap-y-2 rounded-lg border border-border bg-surface p-4 transition hover:border-primary/40 sm:grid-cols-[minmax(0,1fr)_auto_auto] ${STRIPE[b.rag]}`}
+                  className={`press-soft group grid items-center gap-x-6 gap-y-2 rounded-lg border border-border bg-surface p-4 transition hover:border-primary/40 sm:grid-cols-[minmax(0,1fr)_auto_auto] ${STRIPE[b.rag]}`}
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -161,7 +161,7 @@ function BusinessTile({ b, label }: { b: BusinessSummary; label: string }) {
   return (
     <Link
       href={`/business/${b.id}`}
-      className={`flex h-full flex-col gap-3 rounded-lg border border-border bg-surface p-4 transition hover:border-primary/40 ${STRIPE[b.rag]}`}
+      className={`press-soft flex h-full flex-col gap-3 rounded-lg border border-border bg-surface p-4 transition hover:border-primary/40 ${STRIPE[b.rag]}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
