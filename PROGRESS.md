@@ -3,6 +3,15 @@
 Newest first.
 
 ## 2026-11-18
+### Demo 1 (Al Hail): feature-complete, on Gemini
+- **AI provider switched to Google Gemini** (`google-genai` 3.5.0): `backend/app/llm.py` shared client; copilot uses Gemini function calling with streaming, model turns (incl. thought signatures) sent back unchanged. Key in `backend/.env` (`GEMINI_API_KEY`, `GEMINI_MODEL`, default `gemini-2.5-flash`), re-read per request so no restart is needed. Verified: tools against the DB, full loop with a stubbed Gemini client built from real SDK types, clear message without a key. **Live Gemini call not yet tested (no key yet).**
+- **Board pack** (`/board-pack`, `app/alhail/boardpack.py`): executive summary (Gemini from cited facts, template fallback), portfolio performance, business commentary, risks and actions (from the Group Risk Committee), sector view, sources; English and Arabic; Word download (`/alhail/board-pack/docx`) with Al Hail logo and RTL Arabic. Verified both languages via the API and rendered the Word files with LibreOffice.
+- **Signals** (`/signals`): severity and business filters, grouped by month, Arabic text.
+- **Arabic data text**: business locations, relationships, descriptions, signal sources and summaries, commentary and risk items (`app/alhail/content.py`, single source for PDFs, signals and board pack).
+- **Design** (frontend-design skill): board pack typeset as a numbered board paper; sentence-case labels instead of all-caps; no "A · B" meta strings.
+- **One-command start**: `./start-alhail.sh` (`--reseed` to rebuild data).
+- Not visually checked this session: Signals page and Arabic board pack page (headless Chrome stopped loading localhost pages after the session restart; type check, lint and HTTP checks pass).
+
 ### Demo 1 (Al Hail): design pass (artifact-design skill guidance)
 - Cockpit rebuilt summary-first: headline sentence ("2 of 12 businesses need attention this quarter"), one totals band (group revenue and EBITDA vs budget, 10/12 on track), then a "Needs attention" list with each flag's reason, EBITDA trend and variance, then the portfolio by sector, with signals in a side rail.
 - State shown in form: a warning/critical stripe only on flagged businesses (replaces the sector colour bar on every card); EBITDA sparklines (actual vs dashed budget, latest quarter emphasised) on every business.
