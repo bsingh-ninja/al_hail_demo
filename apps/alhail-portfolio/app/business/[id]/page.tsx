@@ -37,10 +37,9 @@ export default function BusinessPage() {
       </Link>
 
       <Card className="overflow-hidden">
-        <div className="h-1.5" style={{ background: b.color }} />
         <div className="grid gap-4 p-5 md:grid-cols-[1fr_320px]">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted">{lang === "ar" ? b.sector_ar : b.sector_en}</div>
+            <div className="eyebrow flex items-center gap-2"><span className="size-2.5 rounded-[3px] ring-1 ring-silver/40" style={{ background: b.color }} />{lang === "ar" ? b.sector_ar : b.sector_en}</div>
             <h1 className="mt-1 text-2xl font-bold text-primary">{lang === "ar" ? b.name_ar : b.name_en}</h1>
             <div className="mt-1 text-sm text-muted">
               {b.location} · {t.relationship}: {b.relationship}
@@ -145,7 +144,7 @@ export default function BusinessPage() {
                   <span className="rounded bg-crit/10 px-1.5 py-0.5 text-[10px] font-bold text-crit">PDF</span>
                   <span className="flex-1 font-medium">Management accounts</span>
                   <span className="num text-xs text-muted" dir="ltr">
-                    {doc.period} · {doc.pages} {t.pages}
+                    {doc.period} · {doc.pages} {doc.pages === 1 ? t.page : t.pages}
                   </span>
                 </a>
               </li>
@@ -256,13 +255,13 @@ function ChartCard({ title, rows }: { title: string; rows: MetricRow[] }) {
       <div className="h-56" dir="ltr">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={rows} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
-            <CartesianGrid stroke="#e3e8ee" vertical={false} />
-            <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#536b84" }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#536b84" }} tickLine={false} axisLine={false} />
-            <Tooltip formatter={(v: number) => fmt(v)} />
+            <CartesianGrid stroke="var(--grid)" vertical={false} />
+            <XAxis dataKey="period" tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+            <Tooltip formatter={(v: number) => fmt(v)} cursor={{ fill: "var(--surface-2)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)" }} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="actual" name={t.actual} fill="#062b49" radius={[3, 3, 0, 0]} barSize={22} isAnimationActive={false} />
-            <Line dataKey="budget" name={t.budget} stroke="#c9ad7a" strokeWidth={2.5} dot={{ r: 3 }} isAnimationActive={false} />
+            <Bar dataKey="actual" name={t.actual} fill="var(--chart-actual)" radius={[3, 3, 0, 0]} barSize={22} isAnimationActive={false} />
+            <Line dataKey="budget" name={t.budget} stroke="var(--chart-budget)" strokeWidth={2.5} strokeDasharray="5 4" dot={{ r: 3, fill: "var(--chart-budget)" }} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

@@ -3,6 +3,12 @@
 Newest first.
 
 ## 2026-11-18
+### Demo 1 (Al Hail): design pass (artifact-design skill guidance)
+- Cockpit rebuilt summary-first: headline sentence ("2 of 12 businesses need attention this quarter"), one totals band (group revenue and EBITDA vs budget, 10/12 on track), then a "Needs attention" list with each flag's reason, EBITDA trend and variance, then the portfolio by sector, with signals in a side rail.
+- State shown in form: a warning/critical stripe only on flagged businesses (replaces the sector colour bar on every card); EBITDA sparklines (actual vs dashed budget, latest quarter emphasised) on every business.
+- Theme: all colours are now tokens with light and dark values (system setting + toggle in the header); charts use the tokens. Visible focus outlines, reduced-motion support, sticky header, phone-width layout (checked at 400px in Arabic).
+- API: `/alhail/overview` now returns each business's 8-quarter EBITDA trend and its flag reason.
+
 ### Demo 1 (Al Hail): Phase 4 (copilot) built, waiting on API key for the live test
 - `backend/app/alhail/copilot.py`: Claude (`claude-opus-5-5`, effort medium, adaptive thinking) tool-use loop, streamed over SSE from `POST /alhail/copilot`. 7 strict tools: `portfolio_overview`, `query_financials`, `list_businesses`, `search_documents`, `list_signals`, `get_exposure`, `get_loan_exceptions`. Prompt caching on (top-level `cache_control`); server-side refusal fallback on (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`). Answers cite documents as `[D<id>p<page>]`.
 - Front end `/copilot`: suggested questions (EN + AR), tool-call chips, streaming markdown answer, citation chips that open the source PDF at the page.

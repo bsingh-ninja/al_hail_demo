@@ -23,6 +23,8 @@ export type BusinessSummary = {
   ebitda_var_pct: number;
   flags: number;
   rag: Rag;
+  trend: { period: string; actual: number; budget: number }[];
+  reason: string | null;
 };
 
 export type Overview = {

@@ -46,6 +46,16 @@ def overview(period: str = LATEST):
             "ebitda": _num(r["ebitda"]), "ebitda_var_pct": round(ev, 1),
             "flags": r["flags"], "rag": rag(ev, r["flags"] > 0 and ev <= -5),
         })
+    trend_rows = fetch_all(
+        "select business_id, period, actual::float, budget::float from alhail.metric "
+        "where metric = 'ebitda' and period <= %(p)s order by period", {"p": period})
+    reasons = {r["business_id"]: r["summary"] for r in fetch_all(
+        "select distinct on (business_id) business_id, summary from alhail.signal "
+        "where severity in ('watch','alert') order by business_id, severity = 'alert' desc, date desc")}
+    for b in businesses:
+        b["trend"] = [{"period": t["period"], "actual": t["actual"], "budget": t["budget"]}
+                      for t in trend_rows if t["business_id"] == b["id"]]
+        b["reason"] = reasons.get(b["id"])
     totals = {
         "revenue": round(sum(b["revenue"] for b in businesses), 1),
         "ebitda": round(sum(b["ebitda"] for b in businesses), 1),

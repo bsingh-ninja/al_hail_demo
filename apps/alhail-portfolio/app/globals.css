@@ -1,29 +1,94 @@
 @import "tailwindcss";
 
-/* Al Hail brand tokens (from alhail.com + logo; see docs/00-brand-kits.md) */
+/*
+  Layout: a board briefing. Attention items first, then the portfolio by sector, signals in a side rail.
+  Al Hail brand (alhail.com + logo): logo navy, logo silver, sand. Neutrals are biased toward the navy.
+  Type: Manrope (brand face) for everything Latin; IBM Plex Sans Arabic for Arabic; tabular figures for data.
+*/
 :root {
-  --bg: #f5f7fa;
+  --bg: #f3f5f8;
   --surface: #ffffff;
-  --border: #e3e8ee;
+  --surface-2: #eaeef3;
+  --border: #dce3eb;
+  --header: #062b49;
+  --header-fg: #ffffff;
   --primary: #062b49;
   --primary-fg: #ffffff;
-  --accent: #d8c39e;
+  --accent: #b8955c;
+  --accent-soft: #efe5d3;
   --highlight: #99bddf;
-  --text: #09131f;
-  --text-muted: #536b84;
+  --text: #0b1a2a;
+  --text-muted: #52667c;
   --silver: #9a9c9f;
-  --ok: #3f8f5a;
-  --warn: #c98a1b;
+  --chart-actual: #062b49;
+  --chart-budget: #b8955c;
+  --grid: #e3e8ee;
+  --ok: #2f7d4f;
+  --warn: #b26b00;
   --crit: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #07121d;
+    --surface: #0d1c2b;
+    --surface-2: #132739;
+    --border: #1f354b;
+    --header: #041019;
+    --header-fg: #e8eef4;
+    --primary: #a9c9e8;
+    --primary-fg: #062b49;
+    --accent: #d8c39e;
+    --accent-soft: #2e2a22;
+    --highlight: #99bddf;
+    --text: #e6edf4;
+    --text-muted: #93a6ba;
+    --silver: #9a9c9f;
+    --chart-actual: #7fa9d4;
+    --chart-budget: #d8c39e;
+    --grid: #1c3045;
+    --ok: #5cbb84;
+    --warn: #e5a84b;
+    --crit: #f07167;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #07121d;
+  --surface: #0d1c2b;
+  --surface-2: #132739;
+  --border: #1f354b;
+  --header: #041019;
+  --header-fg: #e8eef4;
+  --primary: #a9c9e8;
+  --primary-fg: #062b49;
+  --accent: #d8c39e;
+  --accent-soft: #2e2a22;
+  --highlight: #99bddf;
+  --text: #e6edf4;
+  --text-muted: #93a6ba;
+  --silver: #9a9c9f;
+  --chart-actual: #7fa9d4;
+  --chart-budget: #d8c39e;
+  --grid: #1c3045;
+  --ok: #5cbb84;
+  --warn: #e5a84b;
+  --crit: #f07167;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-header: var(--header);
+  --color-header-fg: var(--header-fg);
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-highlight: var(--highlight);
   --color-ink: var(--text);
   --color-muted: var(--text-muted);
@@ -38,24 +103,61 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-manrope), var(--font-arabic), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 html[lang="ar"] body {
   font-family: var(--font-arabic), var(--font-manrope), system-ui, sans-serif;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
 .num {
   font-variant-numeric: tabular-nums;
 }
 
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+html[lang="ar"] .eyebrow {
+  letter-spacing: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Copilot answer typography */
+.prose-copilot { max-width: 72ch; }
 .prose-copilot p { margin: 0.5rem 0; }
 .prose-copilot ul, .prose-copilot ol { margin: 0.5rem 0; padding-inline-start: 1.25rem; }
 .prose-copilot ul { list-style: disc; }
 .prose-copilot ol { list-style: decimal; }
 .prose-copilot li { margin: 0.2rem 0; }
 .prose-copilot strong { color: var(--primary); }
-.prose-copilot table { margin: 0.75rem 0; width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.prose-copilot table { margin: 0.75rem 0; width: 100%; border-collapse: collapse; font-size: 0.8125rem; display: block; overflow-x: auto; }
 .prose-copilot th { text-align: start; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 0.35rem 0.5rem; }
 .prose-copilot td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.5rem; font-variant-numeric: tabular-nums; }
 .prose-copilot h3, .prose-copilot h2 { font-weight: 700; color: var(--primary); margin: 0.75rem 0 0.25rem; }
