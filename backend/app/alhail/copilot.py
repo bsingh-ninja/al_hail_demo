@@ -195,18 +195,22 @@ def chat(history: list[dict]) -> Iterator[str]:
 
     contents = [types.Content(role="model" if m["role"] == "assistant" else "user",
                               parts=[types.Part.from_text(text=m["content"])]) for m in history]
-    config = types.GenerateContentConfig(
-        system_instruction=SYSTEM,
-        tools=GEMINI_TOOLS,
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-    )
+    def config(first_round: bool) -> types.GenerateContentConfig:
+        # The first round must call a data tool, so an answer can never come from the model's memory.
+        mode = types.FunctionCallingConfigMode.ANY if first_round else types.FunctionCallingConfigMode.AUTO
+        return types.GenerateContentConfig(
+            system_instruction=SYSTEM,
+            tools=GEMINI_TOOLS,
+            tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode=mode)),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        )
 
     valid_cites: set[str] = set()
     try:
-        for _ in range(MAX_TOOL_ROUNDS):
+        for round_no in range(MAX_TOOL_ROUNDS):
             turn_parts: list[types.Part] = []
             finish = None
-            for chunk in gemini.models.generate_content_stream(model=MODEL, contents=contents, config=config):
+            for chunk in gemini.models.generate_content_stream(model=MODEL, contents=contents, config=config(round_no == 0)):
                 if not chunk.candidates:
                     continue
                 cand = chunk.candidates[0]
