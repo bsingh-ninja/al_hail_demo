@@ -7,7 +7,7 @@ import { API } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 type ToolStep = { id: string; name: string; input: Record<string, unknown>; count?: number; error?: string };
-type Turn = { role: "user" | "assistant"; content: string; tools?: ToolStep[]; error?: string };
+type Turn = { role: "user" | "assistant"; content: string; tools?: ToolStep[]; error?: string; cites?: string[] };
 
 const SUGGESTIONS = {
   en: [
@@ -85,6 +85,7 @@ export default function CopilotPage() {
               tools: a.tools?.map((s) => (s.id === ev.id ? { ...s, count: ev.count, error: ev.error } : s)),
             }));
           else if (ev.type === "error") update((a) => ({ ...a, error: ev.message }));
+          else if (ev.type === "done") update((a) => ({ ...a, cites: ev.cites ?? [] }));
         }
       }
     } catch (e) {
@@ -200,7 +201,7 @@ export default function CopilotPage() {
               )}
               {turn.content ? (
                 <div className="prose-copilot text-[0.9375rem] leading-relaxed">
-                  <Cited text={turn.content} />
+                  <Cited text={turn.content} allowed={turn.cites} />
                 </div>
               ) : (
                 !turn.error && <div className="animate-pulse text-sm text-muted">{t.thinking}</div>

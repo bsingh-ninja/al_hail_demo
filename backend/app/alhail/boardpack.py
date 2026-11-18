@@ -101,11 +101,11 @@ def build(period: str, lang: str) -> dict:
     revenue_budget = sum(p["revenue_budget"] for p in performance)
     facts = {
         "period": period,
-        "group": {"revenue_aed_m": o["totals"]["revenue"], "revenue_var_pct": round((o["totals"]["revenue"] / revenue_budget - 1) * 100, 1),
+        "group": {"revenue_aed_m": o["totals"]["revenue"], "revenue_vs_budget_pct": round((o["totals"]["revenue"] / revenue_budget - 1) * 100, 1),
                   "ebitda_aed_m": o["totals"]["ebitda"],
-                  "ebitda_var_pct": round((o["totals"]["ebitda"] / o["totals"]["ebitda_budget"] - 1) * 100, 1),
+                  "ebitda_vs_budget_pct": round((o["totals"]["ebitda"] / o["totals"]["ebitda_budget"] - 1) * 100, 1),
                   "businesses_on_track": sum(1 for b in businesses if b["rag"] == "green"), "businesses_total": len(businesses)},
-        "flagged": [{"name": n["name"], "ebitda_var_pct": n["ebitda_var_pct"], "commentary": n["text"], "cite": n["cite"]}
+        "flagged": [{"name": n["name"], "ebitda_vs_budget_pct": n["ebitda_var_pct"], "commentary": n["text"], "cite": n["cite"]}
                     for n in notes if n["rag"] != "green"],
         "egypt_carrying_value_aed_m": {"previous_quarter": egypt.get("2026-Q2"), "this_quarter": egypt.get("2026-Q3"),
                                        "cite": minutes_cite},
@@ -133,6 +133,7 @@ def _summary(facts: dict, lang: str) -> tuple[list[str], str]:
         language = "Modern Standard Arabic" if lang == "ar" else "English"
         system = ("You write the executive summary of the quarterly board pack of Al Hail Holding, a UAE investment holding "
                   "company. Audience: the owner and the board. Use only the facts in the JSON you are given; never add numbers. "
+                  "Percentages named *_vs_budget_pct are variances against budget, not growth: write them as above or below budget. "
                   "Write 4 to 6 bullets, most important first, each one or two sentences, plain and factual. End each bullet "
                   "with the citation ids of the facts it uses in square brackets, e.g. [D4p1]; the group totals bullet needs "
                   f"no citation. Write in {language}. Output only the bullets, one per line, each starting with '- '.")
@@ -148,10 +149,10 @@ def _template_summary(f: dict, lang: str) -> list[str]:
     g, eg = f["group"], f["egypt_carrying_value_aed_m"]
     c = lambda x: f" [{x}]" if x else ""  # noqa: E731
     if lang == "ar":
-        out = [f"بلغت إيرادات المجموعة {g['revenue_aed_m']:,.1f} مليون درهم ({g['revenue_var_pct']:+.1f}% مقابل الميزانية) "
-               f"وEBITDA {g['ebitda_aed_m']:,.1f} مليون درهم ({g['ebitda_var_pct']:+.1f}%) في {f['period']}؛ "
+        out = [f"بلغت إيرادات المجموعة {g['revenue_aed_m']:,.1f} مليون درهم ({g['revenue_vs_budget_pct']:+.1f}% مقابل الميزانية) "
+               f"وEBITDA {g['ebitda_aed_m']:,.1f} مليون درهم ({g['ebitda_vs_budget_pct']:+.1f}%) في {f['period']}؛ "
                f"{g['businesses_on_track']} من {g['businesses_total']} شركة ضمن المسار."]
-        out += [f"{x['name']}: EBITDA {x['ebitda_var_pct']:+.1f}% مقابل الميزانية. {x['commentary'].split('. ')[0].rstrip('.')}.{c(x['cite'])}"
+        out += [f"{x['name']}: EBITDA {x['ebitda_vs_budget_pct']:+.1f}% مقابل الميزانية. {x['commentary'].split('. ')[0].rstrip('.')}.{c(x['cite'])}"
                 for x in f["flagged"]]
         if eg["previous_quarter"] and eg["this_quarter"]:
             out.append(f"انخفضت القيمة الدفترية في مصر من {eg['previous_quarter']:,.0f} إلى {eg['this_quarter']:,.0f} مليون درهم "
@@ -160,10 +161,10 @@ def _template_summary(f: dict, lang: str) -> list[str]:
             out.append(f"اتفقت لجنة المخاطر على {len(f['risk_committee_actions'])} إجراءات، أبرزها: "
                        f"{f['risk_committee_actions'][0]['action']}{c(f['risk_committee_actions'][0]['cite'])}")
         return out
-    out = [f"Group revenue was AED {g['revenue_aed_m']:,.1f}m ({g['revenue_var_pct']:+.1f}% vs budget) and EBITDA "
-           f"AED {g['ebitda_aed_m']:,.1f}m ({g['ebitda_var_pct']:+.1f}%) in {f['period']}; "
+    out = [f"Group revenue was AED {g['revenue_aed_m']:,.1f}m ({g['revenue_vs_budget_pct']:+.1f}% vs budget) and EBITDA "
+           f"AED {g['ebitda_aed_m']:,.1f}m ({g['ebitda_vs_budget_pct']:+.1f}%) in {f['period']}; "
            f"{g['businesses_on_track']} of {g['businesses_total']} businesses are on track."]
-    out += [f"{x['name']}: EBITDA {x['ebitda_var_pct']:+.1f}% vs budget. {x['commentary'].split('. ')[0].rstrip('.')}.{c(x['cite'])}"
+    out += [f"{x['name']}: EBITDA {x['ebitda_vs_budget_pct']:+.1f}% vs budget. {x['commentary'].split('. ')[0].rstrip('.')}.{c(x['cite'])}"
             for x in f["flagged"]]
     if eg["previous_quarter"] and eg["this_quarter"]:
         out.append(f"Egypt carrying value fell from AED {eg['previous_quarter']:,.0f}m to AED {eg['this_quarter']:,.0f}m "

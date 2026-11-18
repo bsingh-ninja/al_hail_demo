@@ -102,8 +102,9 @@ def generate() -> list[Path]:
                 pdf.add_page()
                 _heading(pdf, "4. Loan book exceptions")
                 for l in loans:
-                    _para(pdf, f"{l['ref']} ({l['sector']}): AED {l['o']:,.1f}m outstanding, "
-                                           f"{l['dpd']} days past due, DSCR {l['dscr']:.2f}. Status: {l['status']}.")
+                    # status first, so each line stands alone when the text is split into passages
+                    _para(pdf, f"{l['ref']} ({l['sector']}), status {l['status'].lower()}: AED {l['o']:,.1f}m "
+                               f"outstanding, {l['dpd']} days past due, DSCR {l['dscr']:.2f} against a 1.20 minimum.")
             path = DOC_DIR / f"{b['id']}_{q}_management-accounts.pdf"
             pdf.output(str(path))
             written.append(path)
@@ -172,7 +173,7 @@ def search(query: str, business_id: str | None = None, limit: int = 8) -> list[d
                ts_rank(c.tsv, qq.q) as rank
         from alhail.chunk c join alhail.document d on d.id = c.document_id,
              (select replace(plainto_tsquery('english', %(q)s)::text, '&', '|')::tsquery as q) qq
-        where c.tsv @@ qq.q and (%(b)s::text is null or d.business_id = %(b)s)
+        where c.tsv @@ qq.q and (%(b)s::text is null or d.business_id = %(b)s or d.business_id is null)
         order by rank desc limit %(n)s
         """,
         {"q": query, "b": business_id, "n": limit},

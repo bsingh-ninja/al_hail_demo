@@ -5,11 +5,18 @@ import remarkGfm from "remark-gfm";
 import { useDocSheet } from "@/components/DocumentSheet";
 import { API } from "@/lib/api";
 
-// [D4p1] → link to page 1 of document 4, rendered as a small citation chip
-const linkCitations = (text: string) =>
-  text.replace(/\[D(\d+)p(\d+)\]/g, (_, d, p) => `[D${d} p${p}](${API}/alhail/documents/${d}/file#page=${p})`);
+// [D4p1] → link to page 1 of document 4, rendered as a small citation chip.
+// When `allowed` is given, citations the server did not confirm are dropped rather than shown.
+const linkCitations = (text: string, allowed?: string[]) =>
+  text
+    .replace(/\[(D\d+p\d+(?:\s*[,;،]\s*D\d+p\d+)+)\]/g, (_, list: string) =>
+      list.split(/\s*[,;،]\s*/).map((c) => `[${c}]`).join(" "),
+    )
+    .replace(/ ?\[D(\d+)p(\d+)\]/g, (match, d, p) =>
+    allowed && !allowed.includes(`D${d}p${p}`) ? "" : `${match.startsWith(" ") ? " " : ""}[D${d} p${p}](${API}/alhail/documents/${d}/file#page=${p})`,
+  );
 
-export default function Cited({ text, className = "" }: { text: string; className?: string }) {
+export default function Cited({ text, className = "", allowed }: { text: string; className?: string; allowed?: string[] }) {
   const { openDoc } = useDocSheet();
   return (
     <div className={className}>
@@ -40,7 +47,7 @@ export default function Cited({ text, className = "" }: { text: string; classNam
           },
         }}
       >
-        {linkCitations(text)}
+        {linkCitations(text, allowed)}
       </ReactMarkdown>
     </div>
   );

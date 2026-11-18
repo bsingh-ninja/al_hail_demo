@@ -17,7 +17,8 @@ NO_KEY_MESSAGE = "The AI features need a Gemini API key: set GEMINI_API_KEY in b
 def client() -> genai.Client | None:
     load_dotenv(override=True)  # re-read .env so a newly added key works without restarting the API
     key = os.getenv("GEMINI_API_KEY", "").strip()
-    return genai.Client(api_key=key) if key else None
+    # Function calling is only enabled on the v1beta API; this SDK version defaults to v1.
+    return genai.Client(api_key=key, http_options=types.HttpOptions(api_version="v1beta")) if key else None
 
 
 def error_message(e: errors.APIError) -> str:
