@@ -71,6 +71,7 @@ export type BusinessDetail = {
     status: string;
   }[];
   exposure: { country: string; period: string; carrying_value_aed_m: number; note: string }[];
+  documents: { id: number; title: string; filename: string; period: string; pages: number }[];
 };
 
 export const fmt = (n: number, digits = 1) =>

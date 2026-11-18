@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, ErrorBox, Loading, SeverityPill, Variance } from "@/components/ui";
-import { BusinessDetail, fmt, getJSON, MetricRow } from "@/lib/api";
+import { API, BusinessDetail, fmt, getJSON, MetricRow } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const FINANCIAL = ["revenue", "ebitda", "net_profit"];
@@ -129,6 +129,30 @@ export default function BusinessPage() {
           )}
         </Card>
       </div>
+
+      {d.documents.length > 0 && (
+        <Card className="p-4">
+          <h2 className="mb-3 text-sm font-semibold text-primary">{t.documents}</h2>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {d.documents.map((doc) => (
+              <li key={doc.id}>
+                <a
+                  href={`${API}/alhail/documents/${doc.id}/file`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/40"
+                >
+                  <span className="rounded bg-crit/10 px-1.5 py-0.5 text-[10px] font-bold text-crit">PDF</span>
+                  <span className="flex-1 font-medium">Management accounts</span>
+                  <span className="num text-xs text-muted" dir="ltr">
+                    {doc.period} · {doc.pages} {t.pages}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {d.loans.length > 0 && (
         <Card className="p-4">

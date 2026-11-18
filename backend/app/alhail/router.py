@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
+from app.alhail.docs import DOC_DIR, search
 from app.db import fetch_all, fetch_one
 
 router = APIRouter(prefix="/alhail", tags=["alhail"])
@@ -75,7 +77,10 @@ def business(bid: str):
     exposure = fetch_all(
         "select country, period, carrying_value_aed_m::float, note from alhail.exposure where business_id = %s "
         "order by country, period", (bid,))
-    return {"business": b, "metrics": metrics, "signals": signals, "loans": loans, "exposure": exposure}
+    documents = fetch_all(
+        "select id, title, filename, period, pages from alhail.document where business_id = %s order by period desc", (bid,))
+    return {"business": b, "metrics": metrics, "signals": signals, "loans": loans, "exposure": exposure,
+            "documents": documents}
 
 
 @router.get("/signals")
@@ -83,3 +88,21 @@ def signals():
     return fetch_all(
         "select s.date::text, s.business_id, b.name_en, b.name_ar, s.source, s.summary, s.severity "
         "from alhail.signal s join alhail.business b on b.id = s.business_id order by s.date desc")
+
+
+@router.get("/documents")
+def documents():
+    return fetch_all("select id, business_id, title, filename, period, pages from alhail.document order by period desc, title")
+
+
+@router.get("/documents/{doc_id}/file")
+def document_file(doc_id: int):
+    d = fetch_one("select filename from alhail.document where id = %s", (doc_id,))
+    if not d or not (DOC_DIR / d["filename"]).exists():
+        raise HTTPException(404, "Unknown document")
+    return FileResponse(DOC_DIR / d["filename"], media_type="application/pdf")
+
+
+@router.get("/search")
+def search_documents(q: str, business_id: str | None = None):
+    return search(q, business_id)
