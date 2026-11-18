@@ -10,7 +10,7 @@ export default function Header() {
   const path = usePathname();
   const nav = [
     { href: "/", label: t.cockpit, ready: true },
-    { href: "/copilot", label: t.copilot, ready: false },
+    { href: "/copilot", label: t.copilot, ready: true },
     { href: "/board-pack", label: t.boardPack, ready: false },
     { href: "/signals", label: t.signals, ready: false },
   ];

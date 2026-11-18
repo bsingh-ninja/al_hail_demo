@@ -3,6 +3,12 @@
 Newest first.
 
 ## 2026-11-18
+### Demo 1 (Al Hail): Phase 4 (copilot) built, waiting on API key for the live test
+- `backend/app/alhail/copilot.py`: Claude (`claude-opus-5-5`, effort medium, adaptive thinking) tool-use loop, streamed over SSE from `POST /alhail/copilot`. 7 strict tools: `portfolio_overview`, `query_financials`, `list_businesses`, `search_documents`, `list_signals`, `get_exposure`, `get_loan_exceptions`. Prompt caching on (top-level `cache_control`); server-side refusal fallback on (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`). Answers cite documents as `[D<id>p<page>]`.
+- Front end `/copilot`: suggested questions (EN + AR), tool-call chips, streaming markdown answer, citation chips that open the source PDF at the page.
+- Verified: every tool against the DB (e.g. Egypt exposure AED 460m → 430m); full loop with a stubbed client (tool call → result → streamed text → done); SDK accepts all request parameters; no key → clear error event; browser console clean.
+- **Not yet verified:** a live answer from Claude, because no Anthropic credentials are configured on this machine. Add `ANTHROPIC_API_KEY=...` to `backend/.env`.
+
 ### Demo 1 (Al Hail): Phase 3 (documents) done
 - `python -m app.alhail.docs` generates 25 simulated PDFs from the seeded numbers (management accounts for 12 businesses × 2026-Q2/Q3, plus Q3 Group Risk Committee minutes), with planted commentary (ATD Egypt delay, SAMAA covenant breach, Egypt FX, Emaar Square lease expiries).
 - Ingestion: pypdf text → overlapping 3-sentence chunks → Postgres full-text search (72 chunks), any-term matching ranked by relevance; each hit carries document + page for citations.

@@ -47,3 +47,15 @@ html[lang="ar"] body {
 .num {
   font-variant-numeric: tabular-nums;
 }
+
+/* Copilot answer typography */
+.prose-copilot p { margin: 0.5rem 0; }
+.prose-copilot ul, .prose-copilot ol { margin: 0.5rem 0; padding-inline-start: 1.25rem; }
+.prose-copilot ul { list-style: disc; }
+.prose-copilot ol { list-style: decimal; }
+.prose-copilot li { margin: 0.2rem 0; }
+.prose-copilot strong { color: var(--primary); }
+.prose-copilot table { margin: 0.75rem 0; width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.prose-copilot th { text-align: start; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 0.35rem 0.5rem; }
+.prose-copilot td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.5rem; font-variant-numeric: tabular-nums; }
+.prose-copilot h3, .prose-copilot h2 { font-weight: 700; color: var(--primary); margin: 0.75rem 0 0.25rem; }

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
 
 from app.alhail.docs import DOC_DIR, search
 from app.db import fetch_all, fetch_one
@@ -88,6 +89,22 @@ def signals():
     return fetch_all(
         "select s.date::text, s.business_id, b.name_en, b.name_ar, s.source, s.summary, s.severity "
         "from alhail.signal s join alhail.business b on b.id = s.business_id order by s.date desc")
+
+
+class ChatRequest(BaseModel):
+    messages: list[dict]
+
+
+@router.post("/copilot")
+def copilot(req: ChatRequest):
+    from app.alhail.copilot import chat  # imported here: copilot.py imports this module
+
+    history = [{"role": m["role"], "content": str(m["content"])} for m in req.messages
+               if m.get("role") in ("user", "assistant") and m.get("content")]
+    if not history or history[-1]["role"] != "user":
+        raise HTTPException(400, "The last message must be from the user")
+    return StreamingResponse(chat(history), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @router.get("/documents")
