@@ -3,6 +3,15 @@
 Newest first.
 
 ## 2026-11-18
+### Demo 1 (Al Hail): Apple-style interaction pass (apple-design skill)
+- **Source documents open in a side sheet** (`components/DocumentSheet.tsx`, `motion` 12.23.12) from every citation, the board pack sources and the business page PDFs. Drag or flick the header to dismiss: 1:1 tracking from the grab point, release velocity from a short pointer history, Apple's momentum projection to choose close vs stay, spring settle that inherits the release velocity (bounce only after a flick), rubber-band resistance past the open edge, interruptible mid-flight, Esc and close button, enters and leaves from the trailing edge (left in Arabic). Cmd/Ctrl-click still opens a new tab.
+- Press feedback on pointer-down for buttons, tiles and suggestions; no tap delay.
+- Translucent header and copilot composer with content scrolling underneath, scroll-edge fade instead of a hard divider.
+- Size-specific tracking and leading (tight large headings, neutral body, no tracking on Arabic); rem-based body size.
+- Copilot: Stop button (aborts the stream). Board pack: "Board pack drafted" notice; the paper settles in.
+- Accessibility: reduced motion (cross-fades, no scale), reduced transparency (solid surfaces), increased contrast (solid, defined edges); eased light/dark switch.
+- Not visually checked: headless Chrome on this machine stopped loading any localhost page this session (even a static test page). Type check, lint and HTTP checks pass.
+
 ### Demo 1 (Al Hail): feature-complete, on Gemini
 - **AI provider switched to Google Gemini** (`google-genai` 3.5.0): `backend/app/llm.py` shared client; copilot uses Gemini function calling with streaming, model turns (incl. thought signatures) sent back unchanged. Key in `backend/.env` (`GEMINI_API_KEY`, `GEMINI_MODEL`, default `gemini-2.5-flash`), re-read per request so no restart is needed. Verified: tools against the DB, full loop with a stubbed Gemini client built from real SDK types, clear message without a key. **Live Gemini call not yet tested (no key yet).**
 - **Board pack** (`/board-pack`, `app/alhail/boardpack.py`): executive summary (Gemini from cited facts, template fallback), portfolio performance, business commentary, risks and actions (from the Group Risk Committee), sector view, sources; English and Arabic; Word download (`/alhail/board-pack/docx`) with Al Hail logo and RTL Arabic. Verified both languages via the API and rendered the Word files with LibreOffice.
