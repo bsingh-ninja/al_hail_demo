@@ -3,6 +3,12 @@
 Newest first.
 
 ## 2026-11-18
+### Demo 1 (Al Hail): live Gemini test passed (after fixes)
+- Key in `backend/.env` works; model `gemini-2.5-flash` (newer ones on the account: up to `gemini-3.8-flash`).
+- Bug found live: SDK 3.5 defaults to API v1, where function calling is off → client now uses `v1beta`.
+- Quality fixes from reading real answers: invented citation (now: tools return real cite ids, server reports confirmed ids, UI drops the rest); a lease watch item miscounted as "off budget"; English names in Arabic answers; risk-committee actions missed by filtered search; a watch-list loan called a breach; "+0.5% vs budget" written as growth.
+- Result: 5/5 scripted copilot questions correct (EN + AR), 4–9 s each, 0 unconfirmed citations; board pack summary written by Gemini in EN and AR, all cited; Word export OK.
+
 ### Demo 1 (Al Hail): complete UI revamp
 - New shell: solid navy sidebar with the Al Hail mark and bilingual name, nav with icons, quarter note and language/theme controls (top bar with scrolling nav on phones). Old header/footer removed.
 - Portfolio: large opening headline beside the three group figures; two prominent attention panels (big variance figure, larger trend line, reason); the 12 businesses as one table grouped by sector (revenue, EBITDA, variances, 8-quarter trend, status) instead of 12 cards; signals as a dated timeline.
