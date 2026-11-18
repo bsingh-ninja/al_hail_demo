@@ -71,7 +71,7 @@ def business(bid: str):
         "select date::text, source, summary, severity from alhail.signal where business_id = %s order by date desc", (bid,))
     loans = fetch_all(
         "select ref, borrower, sector, outstanding_aed_m::float, dpd, dscr::float, dscr_min::float, status "
-        "from alhail.loan where lender_id = %s order by (status = 'Performing'), outstanding_aed_m desc", (bid,))
+        "from alhail.loan where lender_id = %s order by case status when 'Covenant breach' then 0 when 'Watch' then 1 else 2 end, outstanding_aed_m desc", (bid,))
     exposure = fetch_all(
         "select country, period, carrying_value_aed_m::float, note from alhail.exposure where business_id = %s "
         "order by country, period", (bid,))
