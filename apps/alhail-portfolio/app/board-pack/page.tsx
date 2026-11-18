@@ -49,25 +49,25 @@ export default function BoardPackPage() {
   }, [lang, t.packDrafted]);
 
   return (
-    <div className="mx-auto max-w-[920px] space-y-5">
+    <div className="mx-auto max-w-[920px] space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-muted">{t.quarter(PERIOD)}</p>
-          <h1 className="text-[26px] font-extrabold leading-tight text-primary">{t.boardPack}</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted">{t.boardPackIntro}</p>
+          <p className="label">{t.quarter(PERIOD)}</p>
+          <h1 className="display mt-2 text-primary">{t.boardPack}</h1>
+          <p className="mt-3 max-w-[56ch] text-[1.0625rem] leading-relaxed text-muted">{t.boardPackIntro}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={draft}
             disabled={busy}
-            className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-fg disabled:opacity-50"
+            className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50"
           >
             {busy ? t.drafting : pack ? t.redraftPack : t.draftPack}
           </button>
           {pack && !busy && (
             <a
               href={`${API}/alhail/board-pack/docx?period=${PERIOD}&lang=${lang}`}
-              className="inline-flex h-10 items-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-primary hover:border-primary/40"
+              className="pressable inline-flex h-11 items-center rounded-xl bg-surface-2 px-5 text-[0.9375rem] font-semibold text-primary hover:bg-border"
             >
               {t.downloadDocx}
             </a>

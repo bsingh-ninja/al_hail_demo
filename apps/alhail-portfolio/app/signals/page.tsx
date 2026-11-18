@@ -7,7 +7,7 @@ import { getJSON, Signal, tr } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 type Severity = Signal["severity"];
-const STRIPE: Record<Severity, string> = { alert: "border-s-crit", watch: "border-s-warn", info: "border-s-border" };
+const STRIPE: Record<Severity, string> = { alert: "border-s-crit", watch: "border-s-warn", info: "border-s-transparent" };
 const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MONTHS_AR = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 
@@ -43,20 +43,20 @@ export default function SignalsPage() {
   signals.forEach((s) => counts[s.severity]++);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div className="mx-auto max-w-[920px] space-y-8">
       <div>
-        <h1 className="text-[26px] font-extrabold leading-tight text-primary">{t.signals}</h1>
-        <p className="mt-1 text-sm text-muted">{t.signalsIntro}</p>
+        <h1 className="display text-primary">{t.signals}</h1>
+        <p className="mt-3 text-[1.0625rem] text-muted">{t.signalsIntro}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div role="group" aria-label={t.signals} className="flex rounded-md border border-border bg-surface p-0.5 text-sm">
+        <div role="group" aria-label={t.signals} className="flex rounded-xl bg-surface-2 p-1 text-[0.875rem]">
           {(["all", "alert", "watch", "info"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setSeverity(s)}
               aria-pressed={severity === s}
-              className={`rounded px-3 py-1.5 ${severity === s ? "bg-primary font-semibold text-primary-fg" : "text-muted hover:text-ink"}`}
+              className={`rounded-lg px-3.5 py-1.5 transition-colors ${severity === s ? "bg-surface font-semibold text-ink shadow-sm" : "text-muted hover:text-ink"}`}
             >
               {s === "all" ? t.allSeverities : t.severity[s]} <span className="num opacity-70">{counts[s]}</span>
             </button>
@@ -69,7 +69,7 @@ export default function SignalsPage() {
           id="signal-business"
           value={business}
           onChange={(e) => setBusiness(e.target.value)}
-          className="h-9 rounded-md border border-border bg-surface px-3 text-sm text-ink"
+          className="h-10 rounded-xl border-0 bg-surface-2 px-3 text-[0.875rem] text-ink"
         >
           <option value="all">{t.allBusinesses}</option>
           {businesses.map(([id, name]) => (
@@ -82,14 +82,14 @@ export default function SignalsPage() {
       </div>
 
       {shown.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-surface p-8 text-center text-sm text-muted">{t.noSignals}</div>
+        <div className="panel p-10 text-center text-[0.9375rem] text-muted">{t.noSignals}</div>
       ) : (
         Object.entries(byMonth).map(([ym, items]) => (
-          <section key={ym} className="space-y-2">
-            <h2 className="text-sm font-bold text-muted">{monthLabel(ym)}</h2>
-            <ul className="space-y-2">
+          <section key={ym} className="space-y-3">
+            <h2 className="title text-[1.0625rem] text-ink">{monthLabel(ym)}</h2>
+            <ul className="panel divide-y divide-hairline overflow-hidden">
               {items.map((s, i) => (
-                <li key={i} className={`rounded-lg border border-border border-s-[3px] bg-surface p-4 ${STRIPE[s.severity]}`}>
+                <li key={i} className={`border-s-[3px] px-5 py-4 ${STRIPE[s.severity]}`}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                     <SeverityPill severity={s.severity} />
                     <Link href={`/business/${s.business_id}`} className="font-bold text-primary hover:underline">

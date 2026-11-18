@@ -1,80 +1,96 @@
 @import "tailwindcss";
 
 /*
-  Layout: a board briefing. Attention items first, then the portfolio by sector, signals in a side rail.
-  Al Hail brand (alhail.com + logo): logo navy, logo silver, sand. Neutrals are biased toward the navy.
-  Type: Manrope (brand face) for everything Latin; IBM Plex Sans Arabic for Arabic; tabular figures for data.
+  Layout: an owner's briefing. Solid navy sidebar (brand anchor), open content area with
+  whitespace and hairlines instead of boxes; panels only where something must stand apart.
+  Color: Al Hail logo navy + silver, sand used sparingly as the one accent. Neutrals lean toward the navy.
+  Type: Manrope (brand) with size-specific tracking; IBM Plex Sans Arabic; tabular figures for data.
 */
 :root {
-  --bg: #f3f5f8;
+  --bg: #f5f6f8;
   --surface: #ffffff;
-  --surface-2: #eaeef3;
-  --border: #dce3eb;
+  --surface-2: #eef1f5;
+  --border: #e3e8ee;
+  --hairline: #e9edf2;
+  --sidebar: #062b49;
+  --sidebar-fg: #e8eef5;
+  --sidebar-muted: #8ea5bc;
   --header: #062b49;
   --header-fg: #ffffff;
   --primary: #062b49;
   --primary-fg: #ffffff;
-  --accent: #b8955c;
-  --accent-soft: #efe5d3;
+  --accent: #b0894e;
+  --accent-soft: #f3ebdd;
   --highlight: #99bddf;
-  --text: #0b1a2a;
-  --text-muted: #52667c;
+  --text: #0a1726;
+  --text-muted: #5a6b7e;
   --silver: #9a9c9f;
   --chart-actual: #062b49;
-  --chart-budget: #b8955c;
-  --grid: #e3e8ee;
-  --ok: #2f7d4f;
+  --chart-budget: #b0894e;
+  --grid: #e7ebf0;
+  --ok: #2e7d50;
   --warn: #b26b00;
   --crit: #b3261e;
+  --shadow: 0 1px 2px rgb(10 23 38 / 0.04), 0 8px 24px -12px rgb(10 23 38 / 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #07121d;
-    --surface: #0d1c2b;
-    --surface-2: #132739;
-    --border: #1f354b;
-    --header: #041019;
+    --bg: #08121c;
+    --surface: #0e1b29;
+    --surface-2: #142537;
+    --border: #1e3247;
+    --hairline: #182b3f;
+    --sidebar: #04101a;
+    --sidebar-fg: #e2eaf2;
+    --sidebar-muted: #7f95ab;
+    --header: #04101a;
     --header-fg: #e8eef4;
-    --primary: #a9c9e8;
+    --primary: #b7d1ea;
     --primary-fg: #062b49;
     --accent: #d8c39e;
-    --accent-soft: #2e2a22;
+    --accent-soft: #2b271f;
     --highlight: #99bddf;
-    --text: #e6edf4;
+    --text: #e8eef4;
     --text-muted: #93a6ba;
     --silver: #9a9c9f;
-    --chart-actual: #7fa9d4;
+    --chart-actual: #86afd8;
     --chart-budget: #d8c39e;
-    --grid: #1c3045;
+    --grid: #1a2d41;
     --ok: #5cbb84;
     --warn: #e5a84b;
     --crit: #f07167;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.5);
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #07121d;
-  --surface: #0d1c2b;
-  --surface-2: #132739;
-  --border: #1f354b;
-  --header: #041019;
+  --bg: #08121c;
+  --surface: #0e1b29;
+  --surface-2: #142537;
+  --border: #1e3247;
+  --hairline: #182b3f;
+  --sidebar: #04101a;
+  --sidebar-fg: #e2eaf2;
+  --sidebar-muted: #7f95ab;
+  --header: #04101a;
   --header-fg: #e8eef4;
-  --primary: #a9c9e8;
+  --primary: #b7d1ea;
   --primary-fg: #062b49;
   --accent: #d8c39e;
-  --accent-soft: #2e2a22;
+  --accent-soft: #2b271f;
   --highlight: #99bddf;
-  --text: #e6edf4;
+  --text: #e8eef4;
   --text-muted: #93a6ba;
   --silver: #9a9c9f;
-  --chart-actual: #7fa9d4;
+  --chart-actual: #86afd8;
   --chart-budget: #d8c39e;
-  --grid: #1c3045;
+  --grid: #1a2d41;
   --ok: #5cbb84;
   --warn: #e5a84b;
   --crit: #f07167;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.5);
   color-scheme: dark;
 }
 
@@ -83,6 +99,10 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
   --color-header: var(--header);
   --color-header-fg: var(--header-fg);
   --color-primary: var(--primary);
@@ -96,6 +116,7 @@
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-crit: var(--crit);
+  --shadow-panel: var(--shadow);
   --font-sans: var(--font-manrope), var(--font-arabic), system-ui, sans-serif;
 }
 
@@ -103,52 +124,61 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-manrope), var(--font-arabic), system-ui, sans-serif;
-  font-size: 0.875rem; /* rem, so the layout scales with the reader's text size */
-  line-height: 1.5;
-  letter-spacing: 0;
+  font-size: 0.9375rem; /* 15px, in rem so the layout follows the reader's text size */
+  line-height: 1.55;
   font-optical-sizing: auto;
-  /* ease light/dark switches instead of an abrupt brightness jump */
-  transition: background-color 250ms ease, color 250ms ease;
+  transition: background-color 250ms ease, color 250ms ease; /* ease light/dark switches */
 }
 
 html[lang="ar"] body {
   font-family: var(--font-arabic), var(--font-manrope), system-ui, sans-serif;
 }
 
-/* Size-specific tracking and leading: tight on large type, neutral on body, a touch open on small labels */
+/* Size-specific tracking and leading */
 h1,
 h2,
 h3 {
   text-wrap: balance;
 }
-h1 {
-  letter-spacing: -0.022em;
-  line-height: 1.08;
+.display {
+  font-size: clamp(2rem, 1.4rem + 1.6vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
 }
-h2 {
-  letter-spacing: -0.012em;
-  line-height: 1.2;
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.014em;
 }
-.text-xs,
-.text-\[11px\],
-.text-\[10\.5px\] {
-  letter-spacing: 0.01em;
+.figure {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
-html[lang="ar"] h1,
-html[lang="ar"] h2,
-html[lang="ar"] .text-xs {
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.005em;
+}
+html[lang="ar"] .display,
+html[lang="ar"] .title,
+html[lang="ar"] .label {
   letter-spacing: 0; /* Arabic is a connected script: never track it */
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .num {
   font-variant-numeric: tabular-nums;
 }
 
-.eyebrow {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--text-muted);
+.panel {
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
 
 :focus-visible {
@@ -158,11 +188,10 @@ html[lang="ar"] .text-xs {
 }
 
 /* Response: feedback on press, not on release */
-.pressable,
 button,
 a[href] {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation; /* no 300ms tap delay */
+  touch-action: manipulation;
 }
 .pressable:active,
 button:not(:disabled):active {
@@ -170,40 +199,24 @@ button:not(:disabled):active {
   transition: transform 100ms ease-out;
 }
 .press-soft:active {
-  transform: scale(0.99);
+  transform: scale(0.992);
   transition: transform 100ms ease-out;
 }
 
-/* Materials: translucent chrome with content scrolling underneath */
-.header-material {
-  background: color-mix(in srgb, var(--header) 82%, transparent);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
-  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08);
-}
-/* Scroll edge effect instead of a hard divider */
-.header-material::after {
-  content: "";
-  position: absolute;
-  inset: 100% 0 auto;
-  height: 14px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--header) 18%, transparent), transparent);
-}
+/* Materials */
 .sheet-material {
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
-  box-shadow: 0 0 0 1px rgb(6 43 73 / 0.04), -24px 0 60px -20px rgb(6 43 73 / 0.35);
+  box-shadow: -24px 0 60px -20px rgb(6 43 73 / 0.35);
 }
 .toast-material {
-  background: color-mix(in srgb, var(--header) 88%, transparent);
+  background: color-mix(in srgb, var(--sidebar) 90%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  color: var(--header-fg);
+  color: var(--sidebar-fg);
 }
 
-/* The board paper settles in as a material arriving, not a plain fade */
 @keyframes paper-arrive {
   from {
     opacity: 0;
@@ -233,7 +246,6 @@ button:not(:disabled):active {
   animation: toast-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Reduced motion: gentle cross-fades instead of movement */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -246,33 +258,24 @@ button:not(:disabled):active {
   .press-soft:active {
     transform: none !important;
   }
-  .paper-arrive,
-  .toast-in {
-    animation: none !important;
-  }
 }
 
-/* Reduced transparency: frosted surfaces become solid */
 @media (prefers-reduced-transparency: reduce) {
-  .header-material,
-  .toast-material {
-    background: var(--header);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
   .sheet-material {
     background: var(--surface);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+  .toast-material {
+    background: var(--sidebar);
+    backdrop-filter: none;
+  }
 }
 
-/* Increased contrast: solid surfaces with defined edges */
 @media (prefers-contrast: more) {
-  .header-material {
-    background: var(--header);
-    backdrop-filter: none;
-    box-shadow: inset 0 -1px 0 var(--header-fg);
+  .panel {
+    box-shadow: none;
+    border: 1px solid var(--text);
   }
   .sheet-material {
     background: var(--surface);
@@ -282,14 +285,14 @@ button:not(:disabled):active {
 }
 
 /* Copilot answer typography */
-.prose-copilot { max-width: 72ch; }
-.prose-copilot p { margin: 0.5rem 0; }
-.prose-copilot ul, .prose-copilot ol { margin: 0.5rem 0; padding-inline-start: 1.25rem; }
+.prose-copilot { max-width: 70ch; }
+.prose-copilot p { margin: 0.55rem 0; }
+.prose-copilot ul, .prose-copilot ol { margin: 0.55rem 0; padding-inline-start: 1.25rem; }
 .prose-copilot ul { list-style: disc; }
 .prose-copilot ol { list-style: decimal; }
-.prose-copilot li { margin: 0.2rem 0; }
+.prose-copilot li { margin: 0.25rem 0; }
 .prose-copilot strong { color: var(--primary); }
-.prose-copilot table { margin: 0.75rem 0; width: 100%; border-collapse: collapse; font-size: 0.8125rem; display: block; overflow-x: auto; }
-.prose-copilot th { text-align: start; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 0.35rem 0.5rem; }
-.prose-copilot td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.5rem; font-variant-numeric: tabular-nums; }
-.prose-copilot h3, .prose-copilot h2 { font-weight: 700; color: var(--primary); margin: 0.75rem 0 0.25rem; }
+.prose-copilot table { margin: 0.75rem 0; width: 100%; border-collapse: collapse; font-size: 0.875rem; display: block; overflow-x: auto; }
+.prose-copilot th { text-align: start; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 0.4rem 0.6rem; }
+.prose-copilot td { border-bottom: 1px solid var(--hairline); padding: 0.4rem 0.6rem; font-variant-numeric: tabular-nums; }
+.prose-copilot h3, .prose-copilot h2 { font-weight: 700; color: var(--primary); margin: 0.85rem 0 0.3rem; }

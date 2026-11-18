@@ -31,47 +31,67 @@ export default function BusinessPage() {
   const series = (metric: string) => d.metrics.filter((m) => m.metric === metric);
   const latestPeriod = d.metrics.at(-1)?.period;
   const kpis = d.metrics.filter((m) => !FINANCIAL.includes(m.metric) && m.period === latestPeriod);
+  const latestRevenue = series("revenue").at(-1);
+  const latestEbitda = series("ebitda").at(-1);
 
   return (
-    <div className="space-y-6">
-      <Link href="/" className="text-sm text-muted hover:text-primary">
-        {lang === "ar" ? "→" : "←"} {t.back}
-      </Link>
+    <div className="space-y-10">
+      <nav aria-label="Breadcrumb" className="label">
+        <Link href="/" className="hover:text-primary hover:underline">
+          {t.cockpit}
+        </Link>
+        <span className="mx-2 text-silver" aria-hidden="true">
+          /
+        </span>
+        <span className="text-ink">{lang === "ar" ? b.name_ar : b.name_en}</span>
+      </nav>
 
-      <Card className="overflow-hidden">
-        <div className="grid gap-4 p-5 md:grid-cols-[1fr_320px]">
-          <div>
-            <div className="eyebrow flex items-center gap-2"><span className="size-2.5 rounded-[3px] ring-1 ring-silver/40" style={{ background: b.color }} />{lang === "ar" ? b.sector_ar : b.sector_en}</div>
-            <h1 className="mt-1 text-2xl font-bold text-primary">{lang === "ar" ? b.name_ar : b.name_en}</h1>
-            <div className="mt-1 text-sm text-muted">
-              {tr(b, "location", lang)}. {t.relationship}: {tr(b, "relationship", lang)}
-            </div>
-            <p className="mt-3 max-w-2xl text-sm text-ink/90">{tr(b, "description", lang)}</p>
+      <header className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0">
+          <div className="label flex items-center gap-2">
+            <span className="size-2.5 rounded-full ring-1 ring-silver/40" style={{ background: b.color }} />
+            {lang === "ar" ? b.sector_ar : b.sector_en}
           </div>
-          <div className="rounded-lg bg-bg p-3">
-            <div className="mb-2 text-xs font-semibold text-muted">{t.publicFacts}</div>
-            <ul className="space-y-1 text-sm">
-              {b.facts.map((f) => (
-                <li key={f}>• {f}</li>
-              ))}
-            </ul>
-            <a href={b.source_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-semibold text-primary underline">
-              {t.source}: alhail.com
-            </a>
-          </div>
+          <h1 className="display mt-2 text-primary">{lang === "ar" ? b.name_ar : b.name_en}</h1>
+          <p className="mt-2 text-[0.9375rem] text-muted">
+            {tr(b, "location", lang)}. {t.relationship}: {tr(b, "relationship", lang)}
+          </p>
+          <p className="mt-4 max-w-[62ch] text-[1.0625rem] leading-relaxed text-ink/90">{tr(b, "description", lang)}</p>
+          {latestRevenue && latestEbitda && (
+            <dl className="mt-8 flex flex-wrap gap-x-12 gap-y-6">
+              <HeroFigure label={`${t.revenue}, ${latestRevenue.period}`} value={fmt(latestRevenue.actual)} unit={t.aedM}
+                delta={(latestRevenue.actual / latestRevenue.budget - 1) * 100} vs={t.vsBudget} />
+              <HeroFigure label={`${t.ebitda}, ${latestEbitda.period}`} value={fmt(latestEbitda.actual)} unit={t.aedM}
+                delta={(latestEbitda.actual / latestEbitda.budget - 1) * 100} vs={t.vsBudget} />
+            </dl>
+          )}
         </div>
-      </Card>
+        <aside className="self-start rounded-[14px] bg-surface-2/70 p-5">
+          <div className="label">{t.publicFacts}</div>
+          <ul className="mt-3 space-y-2 text-[0.9375rem] leading-snug">
+            {b.facts.map((f) => (
+              <li key={f} className="flex gap-2.5">
+                <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-accent" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <a href={b.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-[0.8125rem] font-semibold text-primary hover:underline">
+            {t.source}: alhail.com
+          </a>
+        </aside>
+      </header>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard title={`${t.revenue} (${t.aedM})`} rows={series("revenue")} />
         <ChartCard title={`${t.ebitda} (${t.aedM})`} rows={series("ebitda")} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {kpis.length > 0 && (
-          <Card className="p-4">
-            <h2 className="mb-3 text-sm font-semibold text-primary">
-              {t.kpis} · <span dir="ltr">{latestPeriod}</span>
+          <Card className="p-6">
+            <h2 className="title mb-4 text-[1.0625rem] text-ink">
+              {t.kpis}, <span dir="ltr">{latestPeriod}</span>
             </h2>
             <table className="w-full text-sm">
               <thead className="text-xs text-muted">
@@ -108,8 +128,8 @@ export default function BusinessPage() {
           </Card>
         )}
 
-        <Card className="p-4">
-          <h2 className="mb-3 text-sm font-semibold text-primary">{t.signals}</h2>
+        <Card className="p-6">
+          <h2 className="title mb-4 text-[1.0625rem] text-ink">{t.signals}</h2>
           {d.signals.length === 0 ? (
             <p className="text-sm text-muted">—</p>
           ) : (
@@ -132,8 +152,8 @@ export default function BusinessPage() {
       </div>
 
       {d.documents.length > 0 && (
-        <Card className="p-4">
-          <h2 className="mb-3 text-sm font-semibold text-primary">{t.documents}</h2>
+        <Card className="p-6">
+          <h2 className="title mb-4 text-[1.0625rem] text-ink">{t.documents}</h2>
           <ul className="grid gap-2 sm:grid-cols-2">
             {d.documents.map((doc) => (
               <li key={doc.id}>
@@ -159,8 +179,8 @@ export default function BusinessPage() {
       )}
 
       {d.loans.length > 0 && (
-        <Card className="p-4">
-          <h2 className="mb-3 text-sm font-semibold text-primary">{t.loanBook}</h2>
+        <Card className="p-6">
+          <h2 className="title mb-4 text-[1.0625rem] text-ink">{t.loanBook}</h2>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="text-xs text-muted">
@@ -208,8 +228,8 @@ export default function BusinessPage() {
       )}
 
       {d.exposure.length > 0 && (
-        <Card className="p-4">
-          <h2 className="mb-3 text-sm font-semibold text-primary">
+        <Card className="p-6">
+          <h2 className="title mb-4 text-[1.0625rem] text-ink">
             {t.exposure} ({t.aedM})
           </h2>
           <table className="w-full text-sm">
@@ -252,12 +272,29 @@ function PointsDelta({ value, higherIsBad }: { value: number; higherIsBad: boole
   );
 }
 
+function HeroFigure({ label, value, unit, delta, vs }: { label: string; value: string; unit: string; delta: number; vs: string }) {
+  return (
+    <div>
+      <dt className="label">{label}</dt>
+      <dd className="mt-2">
+        <span className="figure text-[2.25rem] text-primary" dir="ltr">
+          {value}
+        </span>
+        <span className="ms-1.5 text-[0.8125rem] text-muted">{unit}</span>
+        <div className="mt-1.5 text-[0.8125rem] text-muted">
+          <Variance value={delta} /> {vs}
+        </div>
+      </dd>
+    </div>
+  );
+}
+
 function ChartCard({ title, rows }: { title: string; rows: MetricRow[] }) {
   const { t } = useLang();
   return (
-    <Card className="p-4">
-      <h2 className="mb-2 text-sm font-semibold text-primary">{title}</h2>
-      <div className="h-56" dir="ltr">
+    <Card className="p-6">
+      <h2 className="title mb-4 text-[1.0625rem] text-ink">{title}</h2>
+      <div className="h-64" dir="ltr">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={rows} margin={{ top: 5, right: 8, left: -12, bottom: 0 }}>
             <CartesianGrid stroke="var(--grid)" vertical={false} />
@@ -265,7 +302,7 @@ function ChartCard({ title, rows }: { title: string; rows: MetricRow[] }) {
             <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
             <Tooltip formatter={(v: number) => fmt(v)} cursor={{ fill: "var(--surface-2)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)" }} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="actual" name={t.actual} fill="var(--chart-actual)" radius={[3, 3, 0, 0]} barSize={22} isAnimationActive={false} />
+            <Bar dataKey="actual" name={t.actual} fill="var(--chart-actual)" radius={[4, 4, 0, 0]} barSize={16} isAnimationActive={false} />
             <Line dataKey="budget" name={t.budget} stroke="var(--chart-budget)" strokeWidth={2.5} strokeDasharray="5 4" dot={{ r: 3, fill: "var(--chart-budget)" }} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>

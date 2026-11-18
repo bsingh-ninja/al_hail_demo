@@ -31,7 +31,7 @@ export function SeverityPill({ severity }: { severity: Signal["severity"] }) {
 }
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-lg border border-border bg-surface ${className}`}>{children}</div>;
+  return <div className={`panel ${className}`}>{children}</div>;
 }
 
 export function Variance({ value }: { value: number }) {
@@ -48,14 +48,18 @@ export function Variance({ value }: { value: number }) {
 export function Sparkline({
   points,
   tone = "neutral",
+  width = 120,
+  height = 34,
 }: {
   points: { actual: number; budget: number }[];
   tone?: "neutral" | "warn" | "crit";
+  width?: number;
+  height?: number;
 }) {
   if (points.length < 2) return null;
-  const w = 120;
-  const h = 34;
-  const pad = 3;
+  const w = width;
+  const h = height;
+  const pad = 4;
   const values = points.flatMap((p) => [p.actual, p.budget]);
   const lo = Math.min(...values);
   const hi = Math.max(...values);
@@ -66,7 +70,7 @@ export function Sparkline({
   const stroke = tone === "crit" ? "var(--crit)" : tone === "warn" ? "var(--warn)" : "var(--chart-actual)";
   const last = points[points.length - 1];
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-[34px] w-[120px]" aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className="block h-auto max-w-full" aria-hidden="true">
       <path d={area} fill={stroke} fillOpacity={0.08} />
       <path d={line("budget")} fill="none" stroke="var(--chart-budget)" strokeWidth={1.25} strokeDasharray="3 3" />
       <path d={line("actual")} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinejoin="round" />

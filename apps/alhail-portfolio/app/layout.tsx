@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Manrope } from "next/font/google";
 import { DocumentSheetProvider } from "@/components/DocumentSheet";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Sidebar from "@/components/Sidebar";
 import { LangProvider } from "@/lib/i18n";
 import "./globals.css";
 
@@ -24,10 +23,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${manrope.variable} ${arabic.variable} antialiased`}>
         <LangProvider>
           <DocumentSheetProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">{children}</main>
-              <Footer />
+            <div className="min-h-screen lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
+              <Sidebar />
+              <main className="min-w-0 px-4 pb-16 pt-6 sm:px-8 lg:px-12 lg:pt-10">
+                <div className="mx-auto w-full max-w-[1180px]">{children}</div>
+              </main>
             </div>
           </DocumentSheetProvider>
         </LangProvider>

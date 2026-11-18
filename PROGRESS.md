@@ -3,6 +3,15 @@
 Newest first.
 
 ## 2026-11-18
+### Demo 1 (Al Hail): complete UI revamp
+- New shell: solid navy sidebar with the Al Hail mark and bilingual name, nav with icons, quarter note and language/theme controls (top bar with scrolling nav on phones). Old header/footer removed.
+- Portfolio: large opening headline beside the three group figures; two prominent attention panels (big variance figure, larger trend line, reason); the 12 businesses as one table grouped by sector (revenue, EBITDA, variances, 8-quarter trend, status) instead of 12 cards; signals as a dated timeline.
+- Business page: breadcrumb, executive header (name, sector, description, Q3 revenue and EBITDA figures), public facts aside; softer panels and taller charts.
+- Copilot: question-first opening (large heading, prominent question box, suggestions as quiet rows); "New conversation".
+- Signals and board pack restyled to match (grouped lists, segmented filter).
+- Design tokens: quieter neutrals, hairlines instead of borders, one soft panel style, 15px base type, display/title/figure/label type styles with size-specific tracking.
+- Verified with Playwright screenshots (headless Chrome replaced): every screen in light, portfolio in dark, Arabic RTL and at 400px phone width.
+
 ### Demo 1 (Al Hail): Apple-style interaction pass (apple-design skill)
 - **Source documents open in a side sheet** (`components/DocumentSheet.tsx`, `motion` 12.23.12) from every citation, the board pack sources and the business page PDFs. Drag or flick the header to dismiss: 1:1 tracking from the grab point, release velocity from a short pointer history, Apple's momentum projection to choose close vs stay, spring settle that inherits the release velocity (bounce only after a flick), rubber-band resistance past the open edge, interruptible mid-flight, Esc and close button, enters and leaves from the trailing edge (left in Arabic). Cmd/Ctrl-click still opens a new tab.
 - Press feedback on pointer-down for buttons, tiles and suggestions; no tap delay.

@@ -96,24 +96,76 @@ export default function CopilotPage() {
     }
   }
 
-  return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">{t.copilot}</h1>
-        <p className="text-sm text-muted">{t.copilotIntro}</p>
-      </div>
+  const composer = (hero: boolean) => (
+  <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask(input);
+        }}
+        className={`flex items-center gap-2 rounded-2xl p-2 ${hero ? "panel" : "sheet-material sticky bottom-4 ring-1 ring-border"}`}
+      >
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={t.askPlaceholder}
+          className={`min-w-0 flex-1 bg-transparent px-3 outline-none placeholder:text-muted ${hero ? "py-3 text-[1.0625rem]" : "py-2 text-[0.9375rem]"}`}
+          disabled={busy}
+        />
+        {busy ? (
+          <button
+            type="button"
+            onClick={() => controller.current?.abort()}
+            className="h-11 rounded-xl bg-surface-2 px-5 text-[0.9375rem] font-semibold text-ink"
+          >
+            {t.stop}
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-40"
+          >
+            {t.ask}
+          </button>
+        )}
+    </form>
+  );
 
-      {turns.length === 0 && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {[...SUGGESTIONS[lang], ...(lang === "en" ? [] : SUGGESTIONS.en.slice(0, 1))].map((s) => (
-            <button
-              key={s}
-              onClick={() => ask(s)}
-              className="press-soft rounded-xl border border-border bg-surface p-3 text-start text-sm hover:border-primary/40"
-            >
-              {s}
-            </button>
-          ))}
+  return (
+    <div className="mx-auto flex max-w-[860px] flex-col gap-6">
+      {turns.length === 0 ? (
+        <section className="space-y-8 pt-[6vh]">
+          <div>
+            <p className="label">{t.copilot}</p>
+            <h1 className="display mt-2 max-w-[20ch] text-primary">{t.copilotHeadline}</h1>
+            <p className="mt-3 max-w-[60ch] text-[1.0625rem] leading-relaxed text-muted">{t.copilotIntro}</p>
+          </div>
+          {composer(true)}
+          <div>
+            <p className="label mb-2">{t.tryAsking}</p>
+            <ul className="divide-y divide-hairline">
+              {[...SUGGESTIONS[lang], ...(lang === "en" ? [] : SUGGESTIONS.en.slice(0, 1))].map((s) => (
+                <li key={s}>
+                  <button
+                    onClick={() => ask(s)}
+                    className="press-soft flex w-full items-center gap-3 py-3.5 text-start text-[0.9375rem] text-ink hover:text-primary"
+                  >
+                    <svg viewBox="0 0 24 24" className="size-4 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                      <path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" />
+                    </svg>
+                    {s}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : (
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 className="title text-ink">{t.copilot}</h1>
+          <button onClick={() => setTurns([])} className="text-sm font-semibold text-primary hover:underline" disabled={busy}>
+            {t.newConversation}
+          </button>
         </div>
       )}
 
@@ -121,7 +173,7 @@ export default function CopilotPage() {
         {turns.map((turn, i) =>
           turn.role === "user" ? (
             <div key={i} className="flex justify-end">
-              <div className="max-w-[85%] rounded-2xl bg-primary px-4 py-2.5 text-sm text-primary-fg">{turn.content}</div>
+              <div className="max-w-[80%] rounded-2xl rounded-ee-md bg-primary px-4 py-2.5 text-[0.9375rem] text-primary-fg">{turn.content}</div>
             </div>
           ) : (
             <Card key={i} className="p-4">
@@ -147,7 +199,7 @@ export default function CopilotPage() {
                 </div>
               )}
               {turn.content ? (
-                <div className="prose-copilot text-sm leading-relaxed">
+                <div className="prose-copilot text-[0.9375rem] leading-relaxed">
                   <Cited text={turn.content} />
                 </div>
               ) : (
@@ -160,38 +212,7 @@ export default function CopilotPage() {
         <div ref={endRef} />
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          ask(input);
-        }}
-        className="sheet-material sticky bottom-4 flex gap-2 rounded-2xl border border-border p-2"
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={t.askPlaceholder}
-          className="flex-1 bg-transparent px-3 py-2 text-sm outline-none"
-          disabled={busy}
-        />
-        {busy ? (
-          <button
-            type="button"
-            onClick={() => controller.current?.abort()}
-            className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink"
-          >
-            {t.stop}
-          </button>
-        ) : (
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-fg disabled:opacity-40"
-          >
-            {t.ask}
-          </button>
-        )}
-      </form>
+      {turns.length > 0 && composer(false)}
     </div>
   );
 }
