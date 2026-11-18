@@ -58,8 +58,8 @@ export default function Header() {
   const nav = [
     { href: "/", label: t.cockpit, ready: true },
     { href: "/copilot", label: t.copilot, ready: true },
-    { href: "/board-pack", label: t.boardPack, ready: false },
-    { href: "/signals", label: t.signals, ready: false },
+    { href: "/board-pack", label: t.boardPack, ready: true },
+    { href: "/signals", label: t.signals, ready: true },
   ];
   const active = (href: string) => path === href || (href === "/" && path.startsWith("/business"));
 

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, ErrorBox, Loading, SeverityPill, Variance } from "@/components/ui";
-import { API, BusinessDetail, fmt, getJSON, MetricRow } from "@/lib/api";
+import { API, BusinessDetail, fmt, getJSON, MetricRow, tr } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const FINANCIAL = ["revenue", "ebitda", "net_profit"];
@@ -42,9 +42,9 @@ export default function BusinessPage() {
             <div className="eyebrow flex items-center gap-2"><span className="size-2.5 rounded-[3px] ring-1 ring-silver/40" style={{ background: b.color }} />{lang === "ar" ? b.sector_ar : b.sector_en}</div>
             <h1 className="mt-1 text-2xl font-bold text-primary">{lang === "ar" ? b.name_ar : b.name_en}</h1>
             <div className="mt-1 text-sm text-muted">
-              {b.location} · {t.relationship}: {b.relationship}
+              {tr(b, "location", lang)}. {t.relationship}: {tr(b, "relationship", lang)}
             </div>
-            <p className="mt-3 max-w-2xl text-sm text-ink/90">{b.description}</p>
+            <p className="mt-3 max-w-2xl text-sm text-ink/90">{tr(b, "description", lang)}</p>
           </div>
           <div className="rounded-lg bg-bg p-3">
             <div className="mb-2 text-xs font-semibold text-muted">{t.publicFacts}</div>
@@ -116,12 +116,12 @@ export default function BusinessPage() {
                 <li key={i}>
                   <div className="mb-1 flex items-center gap-2 text-xs">
                     <SeverityPill severity={s.severity} />
-                    <span className="text-muted">{s.source}</span>
+                    <span className="text-muted">{tr(s, "source", lang)}</span>
                     <span className="num ms-auto text-muted" dir="ltr">
                       {s.date}
                     </span>
                   </div>
-                  <p className="text-sm">{s.summary}</p>
+                  <p className="text-sm">{tr(s, "summary", lang)}</p>
                 </li>
               ))}
             </ul>

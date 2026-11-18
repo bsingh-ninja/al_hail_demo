@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import Cited from "@/components/Cited";
 import { Card } from "@/components/ui";
 import { API } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -34,9 +33,6 @@ const TOOL_LABEL: Record<string, string> = {
   get_loan_exceptions: "Loan exceptions",
 };
 
-// [D4p1] → markdown link to the cited PDF page, rendered as a chip
-const linkCitations = (text: string) =>
-  text.replace(/\[D(\d+)p(\d+)\]/g, (_, d, p) => `[D${d}·p${p}](${API}/alhail/documents/${d}/file#page=${p})`);
 
 export default function CopilotPage() {
   const { t, lang } = useLang();
@@ -147,29 +143,7 @@ export default function CopilotPage() {
               )}
               {turn.content ? (
                 <div className="prose-copilot text-sm leading-relaxed">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      a: ({ href, children }) =>
-                        href?.includes("/alhail/documents/") ? (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mx-0.5 inline-block rounded bg-accent/30 px-1 py-px align-middle text-[10.5px] font-semibold text-primary no-underline hover:bg-accent/50"
-                            dir="ltr"
-                          >
-                            {children}
-                          </a>
-                        ) : (
-                          <a href={href} className="underline">
-                            {children}
-                          </a>
-                        ),
-                    }}
-                  >
-                    {linkCitations(turn.content)}
-                  </ReactMarkdown>
+                  <Cited text={turn.content} />
                 </div>
               ) : (
                 !turn.error && <div className="animate-pulse text-sm text-muted">{t.thinking}</div>

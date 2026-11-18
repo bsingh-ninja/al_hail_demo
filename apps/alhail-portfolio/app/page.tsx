@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ErrorBox, Loading, RagPill, SeverityPill, Sparkline, Variance } from "@/components/ui";
-import { BusinessSummary, fmt, getJSON, Overview, Signal } from "@/lib/api";
+import { BusinessSummary, fmt, getJSON, Overview, Signal, tr } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const STRIPE = { green: "", amber: "border-s-[3px] border-s-warn", red: "border-s-[3px] border-s-crit" } as const;
@@ -39,7 +39,7 @@ export default function Cockpit() {
       <section className="space-y-4">
         <div>
           <div className="eyebrow">
-            {t.groupPortfolio} · <span dir="ltr">{data.period}</span>
+            {t.groupPortfolio}, <span dir="ltr">{data.period}</span>
           </div>
           <h1 className="mt-1 text-[26px] font-extrabold leading-tight text-primary sm:text-[30px]">
             {t.headline(flagged.length, data.businesses.length)}
@@ -69,7 +69,7 @@ export default function Cockpit() {
                       <span className="text-base font-bold text-ink">{name(b)}</span>
                       <RagPill rag={b.rag} />
                     </div>
-                    <p className="mt-1 text-sm text-muted">{b.reason}</p>
+                    <p className="mt-1 text-sm text-muted">{tr(b, "reason", lang)}</p>
                   </div>
                   <Sparkline points={b.trend} tone={TONE[b.rag]} />
                   <div className="flex items-baseline gap-2 sm:block sm:text-end">
@@ -127,7 +127,7 @@ export default function Cockpit() {
                     {s.date.slice(5)}
                   </span>
                 </div>
-                <p className="text-[13px] leading-snug text-ink/90">{s.summary}</p>
+                <p className="text-[13px] leading-snug text-ink/90">{tr(s, "summary", lang)}</p>
               </li>
             ))}
           </ul>
@@ -157,7 +157,7 @@ function Stat({ label, value, unit, delta, vs }: { label: string; value: string;
 }
 
 function BusinessTile({ b, label }: { b: BusinessSummary; label: string }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   return (
     <Link
       href={`/business/${b.id}`}
@@ -166,7 +166,7 @@ function BusinessTile({ b, label }: { b: BusinessSummary; label: string }) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="font-bold leading-snug text-ink">{label}</div>
-          <div className="text-xs text-muted">{b.location}</div>
+          <div className="text-xs text-muted">{tr(b, "location", lang)}</div>
         </div>
         <RagPill rag={b.rag} />
       </div>
@@ -189,7 +189,7 @@ function BusinessTile({ b, label }: { b: BusinessSummary; label: string }) {
         </dl>
         <Sparkline points={b.trend} tone={TONE[b.rag]} />
       </div>
-      <div className="mt-auto text-xs text-muted">{b.relationship}</div>
+      <div className="mt-auto text-xs text-muted">{tr(b, "relationship", lang)}</div>
     </Link>
   );
 }

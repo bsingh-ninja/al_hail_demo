@@ -6,7 +6,25 @@ export async function getJSON<T>(path: string): Promise<T> {
   return res.json();
 }
 
+export async function postJSON<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? `${res.status} ${path}`);
+  }
+  return res.json();
+}
+
 export type Rag = "green" | "amber" | "red";
+export type Lang = "en" | "ar";
+
+/** Pick the Arabic field when the UI is in Arabic and the field exists. */
+export const tr = <T extends Record<string, unknown>>(o: T, key: string, lang: Lang): string =>
+  String((lang === "ar" && o[`${key}_ar`]) || o[key] || "");
 
 export type Sector = { id: string; name_en: string; name_ar: string; color: string; sort: number };
 
@@ -16,7 +34,9 @@ export type BusinessSummary = {
   name_en: string;
   name_ar: string;
   location: string;
+  location_ar: string;
   relationship: string;
+  relationship_ar: string;
   revenue: number;
   revenue_var_pct: number;
   ebitda: number;
@@ -25,6 +45,7 @@ export type BusinessSummary = {
   rag: Rag;
   trend: { period: string; actual: number; budget: number }[];
   reason: string | null;
+  reason_ar: string | null;
 };
 
 export type Overview = {
@@ -37,10 +58,13 @@ export type Overview = {
 export type Signal = {
   date: string;
   business_id?: string;
+  sector_id?: string;
   name_en?: string;
   name_ar?: string;
   source: string;
+  source_ar: string;
   summary: string;
+  summary_ar: string;
   severity: "info" | "watch" | "alert";
 };
 
@@ -52,8 +76,11 @@ export type BusinessDetail = {
     name_en: string;
     name_ar: string;
     location: string;
+    location_ar: string;
     relationship: string;
+    relationship_ar: string;
     description: string;
+    description_ar: string;
     facts: string[];
     source_url: string;
     sector_en: string;
@@ -74,6 +101,30 @@ export type BusinessDetail = {
   }[];
   exposure: { country: string; period: string; carrying_value_aed_m: number; note: string }[];
   documents: { id: number; title: string; filename: string; period: string; pages: number }[];
+};
+
+export type BoardPack = {
+  period: string;
+  lang: Lang;
+  quarter_end: string;
+  prepared: string;
+  generated_by: string;
+  summary: string[];
+  performance: {
+    id: string;
+    name: string;
+    sector: string;
+    rag: Rag;
+    revenue: number;
+    revenue_var_pct: number;
+    ebitda: number;
+    ebitda_var_pct: number;
+    cite: string | null;
+  }[];
+  commentary: { id: string; name: string; rag: Rag; ebitda_var_pct: number; text: string; cite: string | null }[];
+  risks: { business: string; severity: "info" | "watch" | "alert"; risk: string; action: string; owner: string; cite: string | null }[];
+  sectors: { id: string; name: string; color: string; revenue: number; revenue_var_pct: number; ebitda: number; ebitda_var_pct: number; businesses: string[] }[];
+  sources: { id: number; cite: string; title: string }[];
 };
 
 export const fmt = (n: number, digits = 1) =>

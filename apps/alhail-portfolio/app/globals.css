@@ -122,15 +122,9 @@ h3 {
 }
 
 .eyebrow {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--text-muted);
-}
-
-html[lang="ar"] .eyebrow {
-  letter-spacing: 0;
 }
 
 :focus-visible {
