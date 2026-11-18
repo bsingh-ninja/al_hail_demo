@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: uae-demos-db
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demos
+    ports:
+      - "5433:5432"
+    volumes:
+      - uae-demos-pg:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  uae-demos-pg:
