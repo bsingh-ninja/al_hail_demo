@@ -26,7 +26,7 @@ if [ "${1:-}" = "--reseed" ] || [ "$seeded" != "t" ]; then
 fi
 
 echo "4/4 API and web app"
-[ -d apps/alhail-portfolio/node_modules ] || (cd apps/alhail-portfolio && pnpm install --silent)
+[ -d apps/alhail-portfolio/node_modules ] || (cd apps/alhail-portfolio && pnpm install --silent --allow-build sharp)
 (cd backend && .venv/bin/uvicorn app.main:app --port 8000 --reload --reload-dir app) &
 API_PID=$!
 (cd apps/alhail-portfolio && pnpm dev --port 3001) &

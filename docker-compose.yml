@@ -1,3 +1,5 @@
+name: uae-ai-demos # same project name whichever folder it is started from
+
 services:
   db:
     image: postgres:16-alpine
