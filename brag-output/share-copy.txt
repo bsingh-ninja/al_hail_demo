@@ -1,0 +1,1 @@
+We built a portfolio copilot for a holding company: one view of 12 businesses, what needs attention and why, answers in English or Arabic with every number linked to its source, and the board pack drafted for you. Concept demo with simulated figures, built by NinjaTech.
