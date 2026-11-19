@@ -1,49 +1,43 @@
-# UAE AI Demos
+# Al Hail Group Portfolio Copilot (demo)
 
-Two standalone demos for the owner meeting: **Al Hail Group Portfolio Copilot** (ready) and **Transguard Workforce Intelligence** (next).
+AI portfolio intelligence demo prepared for Al Hail Holding by NinjaTech: one view of the 12 businesses, a copilot that answers in English or Arabic with every number linked to its source, and a quarterly board pack drafted for the board office.
 
-- Plan: [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)
-- Status: [PROGRESS.md](PROGRESS.md)
-- Background (plans, brand kits, logos): [docs/](docs/)
+All quarterly figures, borrowers and documents are simulated; business names and public facts come from alhail.com.
 
-## Run the Al Hail demo
+## Run
 
 ```bash
-./start-alhail.sh            # database, API on :8000, web app on :3001
-./start-alhail.sh --reseed   # same, but rebuild the demo data and source PDFs first
+./start.sh            # database (:5433), API (:8000), web app (:3001)
+./start.sh --reseed   # rebuild the demo data and source PDFs first
 ```
 
 Open http://localhost:3001 (Arabic: http://localhost:3001/?lang=ar). Requires Docker, Python 3.12 and pnpm.
 
-### AI key (Gemini)
+### Gemini key
 
-The copilot and the AI-written board pack summary use Google Gemini. Put your key in **`backend/.env`**:
+The copilot and the AI-written board pack summary use Google Gemini. Put your key in `backend/.env` (ignored by git):
 
 ```
 GEMINI_API_KEY=your-key-here
 GEMINI_MODEL=gemini-2.5-flash
 ```
 
-The key is read on every request, so no restart is needed. `backend/.env` is ignored by git. Without a key, everything else works and the board pack summary falls back to a template.
+The key is read on every request, so no restart is needed. Without a key everything else works and the board pack summary uses a template.
 
-## What the demo shows
+## Screens
 
 | Screen | What it does |
 |---|---|
 | Portfolio | The 12 businesses by sector, flagged businesses first with the reason, EBITDA trend vs budget |
 | Business page | Revenue and EBITDA vs budget, KPIs, loan book exceptions, country exposure, source PDFs |
-| Copilot | Questions in English or Arabic, answered from the data and documents with clickable citations |
+| Copilot | Questions in English or Arabic, answered from the data and documents; every answer must look up the data first, and only server-confirmed citations are shown |
 | Board pack | Drafts the quarterly board pack (summary, performance, commentary, risks and actions, sectors) and downloads it as Word |
 | Signals | Risk and news signals with severity and business filters |
 
-All quarterly figures are simulated; public facts link to alhail.com.
+## Layout
 
-## Manual start (instead of the script)
-
-```bash
-docker compose up -d
-cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m app.alhail.seed && .venv/bin/python -m app.alhail.docs
-.venv/bin/uvicorn app.main:app --port 8000 --reload --reload-dir app
-cd apps/alhail-portfolio && pnpm install && pnpm dev --port 3001
+```
+backend/   FastAPI + Postgres (app/alhail: seed, documents, copilot, board pack)
+web/       Next.js app (Al Hail brand, EN/AR, light/dark)
+docs/      plan, brand kit, logo
 ```

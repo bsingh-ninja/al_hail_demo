@@ -1,9 +1,9 @@
-name: uae-ai-demos # same project name whichever folder it is started from
+name: al-hail-demo
 
 services:
   db:
     image: postgres:16-alpine
-    container_name: uae-demos-db
+    container_name: alhail-demo-db
     environment:
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo
@@ -11,8 +11,8 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - uae-demos-pg:/var/lib/postgresql/data
+      - alhail-demo-pg:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
-  uae-demos-pg:
+  alhail-demo-pg:
