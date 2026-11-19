@@ -65,6 +65,15 @@ GEMINI_MODEL=gemini-2.5-flash
 
 The key is read on every request, so no restart is needed. Without a key everything else works and the board pack summary uses a template.
 
+## CI
+
+`.github/workflows/ci.yml` runs on every push to `main`, on pull requests and by hand:
+
+- **Web app:** install, lint, type check and production build. Set the repository variable `NEXT_PUBLIC_API_URL` to build against a hosted API.
+- **API:** Postgres 16 service, seed the demo data, start the API, then `backend/scripts/smoke.py` checks the demo scenario. No Gemini key is needed in CI; the AI features are not called.
+
+The smoke test also runs against the local demo: `cd backend && .venv/bin/python scripts/smoke.py http://127.0.0.1:8000`. Deploy jobs can be added to the same workflow once a hosting target is chosen.
+
 ## Screens
 
 | Screen | What it does |
