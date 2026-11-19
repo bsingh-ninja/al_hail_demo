@@ -9,7 +9,7 @@ All quarterly figures, borrowers and documents are simulated; business names and
 | | |
 |---|---|
 | Demo video (22 s) | [brag-output/brag.mp4](brag-output/brag.mp4) ([open on GitHub](https://github.com/bsingh-ninja/al_hail_demo/blob/main/brag-output/brag.mp4)) |
-| Live demo | https://al-hail-demo.onrender.com (Arabic: https://al-hail-demo.onrender.com/?lang=ar).. The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3001 |
+| Live demo | https://al-hail-demo.onrender.com (Arabic: https://al-hail-demo.onrender.com/?lang=ar). The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3001 |
 | Code | https://github.com/bsingh-ninja/al_hail_demo |
 
 [![Al Hail Group Portfolio Copilot, 22-second demo video](brag-output/brag.jpg)](brag-output/brag.mp4)
