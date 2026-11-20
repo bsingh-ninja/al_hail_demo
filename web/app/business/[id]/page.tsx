@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useReducedMotion } from "motion/react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDocSheet } from "@/components/DocumentSheet";
-import { Card, ErrorBox, Loading, SeverityPill, Variance } from "@/components/ui";
-import { API, BusinessDetail, fmt, getJSON, MetricRow, tr } from "@/lib/api";
+import { CountUp, Reveal } from "@/components/motion";
+import { Card, PageState, SeverityPill, Variance } from "@/components/ui";
+import { API, BusinessDetail, fmt, MetricRow, tr } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { useJSON } from "@/lib/useJSON";
 
 const FINANCIAL = ["revenue", "ebitda", "net_profit"];
 
@@ -15,17 +17,9 @@ export default function BusinessPage() {
   const { id } = useParams<{ id: string }>();
   const { t, lang } = useLang();
   const { openDoc } = useDocSheet();
-  const [d, setD] = useState<BusinessDetail | null>(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    getJSON<BusinessDetail>(`/alhail/business/${id}`)
-      .then(setD)
-      .catch((e) => setError(String(e.message)));
-  }, [id]);
-
-  if (error) return <ErrorBox message={error} />;
-  if (!d) return <Loading />;
+  const res = useJSON<BusinessDetail>(`/alhail/business/${id}`);
+  const d = res.data;
+  if (!d) return <PageState error={res.error} waking={res.waking} variant="detail" />;
 
   const b = d.business;
   const series = (metric: string) => d.metrics.filter((m) => m.metric === metric);
@@ -59,10 +53,10 @@ export default function BusinessPage() {
           <p className="mt-4 max-w-[62ch] text-[1.0625rem] leading-relaxed text-ink/90">{tr(b, "description", lang)}</p>
           {latestRevenue && latestEbitda && (
             <dl className="mt-8 flex flex-wrap gap-x-12 gap-y-6">
-              <HeroFigure label={`${t.revenue}, ${latestRevenue.period}`} value={fmt(latestRevenue.actual)} unit={t.aedM}
-                delta={(latestRevenue.actual / latestRevenue.budget - 1) * 100} vs={t.vsBudget} />
-              <HeroFigure label={`${t.ebitda}, ${latestEbitda.period}`} value={fmt(latestEbitda.actual)} unit={t.aedM}
-                delta={(latestEbitda.actual / latestEbitda.budget - 1) * 100} vs={t.vsBudget} />
+              <HeroFigure label={`${t.revenue}, ${latestRevenue.period}`} value={latestRevenue.actual} unit={t.aedM}
+                delta={(latestRevenue.actual / latestRevenue.budget - 1) * 100} vs={t.vsBudget} delay={0.1} />
+              <HeroFigure label={`${t.ebitda}, ${latestEbitda.period}`} value={latestEbitda.actual} unit={t.aedM}
+                delta={(latestEbitda.actual / latestEbitda.budget - 1) * 100} vs={t.vsBudget} delay={0.2} />
             </dl>
           )}
         </div>
@@ -82,12 +76,12 @@ export default function BusinessPage() {
         </aside>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <Reveal delay={0.15} className="grid gap-6 lg:grid-cols-2">
         <ChartCard title={`${t.revenue} (${t.aedM})`} rows={series("revenue")} />
         <ChartCard title={`${t.ebitda} (${t.aedM})`} rows={series("ebitda")} />
-      </div>
+      </Reveal>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <Reveal delay={0.25} className="grid gap-6 lg:grid-cols-2">
         {kpis.length > 0 && (
           <Card className="p-6">
             <h2 className="title mb-4 text-[1.0625rem] text-ink">
@@ -149,7 +143,7 @@ export default function BusinessPage() {
             </ul>
           )}
         </Card>
-      </div>
+      </Reveal>
 
       {d.documents.length > 0 && (
         <Card className="p-6">
@@ -167,7 +161,7 @@ export default function BusinessPage() {
                   className="press-soft flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm hover:border-primary/40"
                 >
                   <span className="rounded bg-crit/10 px-1.5 py-0.5 text-[10px] font-bold text-crit">PDF</span>
-                  <span className="flex-1 font-medium">Management accounts</span>
+                  <span className="flex-1 font-medium">{t.managementAccounts}</span>
                   <span className="num text-xs text-muted" dir="ltr">
                     {doc.period} · {doc.pages} {doc.pages === 1 ? t.page : t.pages}
                   </span>
@@ -179,7 +173,7 @@ export default function BusinessPage() {
       )}
 
       {d.loans.length > 0 && (
-        <Card className="p-6">
+        <Card className="p-6" data-tour="loans">
           <h2 className="title mb-4 text-[1.0625rem] text-ink">{t.loanBook}</h2>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
@@ -272,13 +266,27 @@ function PointsDelta({ value, higherIsBad }: { value: number; higherIsBad: boole
   );
 }
 
-function HeroFigure({ label, value, unit, delta, vs }: { label: string; value: string; unit: string; delta: number; vs: string }) {
+function HeroFigure({
+  label,
+  value,
+  unit,
+  delta,
+  vs,
+  delay,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  delta: number;
+  vs: string;
+  delay: number;
+}) {
   return (
     <div>
       <dt className="label">{label}</dt>
       <dd className="mt-2">
         <span className="figure text-[2.25rem] text-primary" dir="ltr">
-          {value}
+          <CountUp value={value} format={fmt} delay={delay} />
         </span>
         <span className="ms-1.5 text-[0.8125rem] text-muted">{unit}</span>
         <div className="mt-1.5 text-[0.8125rem] text-muted">
@@ -291,6 +299,7 @@ function HeroFigure({ label, value, unit, delta, vs }: { label: string; value: s
 
 function ChartCard({ title, rows }: { title: string; rows: MetricRow[] }) {
   const { t } = useLang();
+  const animate = !useReducedMotion();
   return (
     <Card className="p-6">
       <h2 className="title mb-4 text-[1.0625rem] text-ink">{title}</h2>
@@ -302,8 +311,8 @@ function ChartCard({ title, rows }: { title: string; rows: MetricRow[] }) {
             <YAxis tick={{ fontSize: 11, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
             <Tooltip formatter={(v: number) => fmt(v)} cursor={{ fill: "var(--surface-2)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)" }} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="actual" name={t.actual} fill="var(--chart-actual)" radius={[4, 4, 0, 0]} barSize={16} isAnimationActive={false} />
-            <Line dataKey="budget" name={t.budget} stroke="var(--chart-budget)" strokeWidth={2.5} strokeDasharray="5 4" dot={{ r: 3, fill: "var(--chart-budget)" }} isAnimationActive={false} />
+            <Bar dataKey="actual" name={t.actual} fill="var(--chart-actual)" radius={[4, 4, 0, 0]} barSize={16} isAnimationActive={animate} animationDuration={700} animationEasing="ease-out" />
+            <Line dataKey="budget" name={t.budget} stroke="var(--chart-budget)" strokeWidth={2.5} strokeDasharray="5 4" dot={{ r: 3, fill: "var(--chart-budget)" }} isAnimationActive={animate} animationBegin={250} animationDuration={800} animationEasing="ease-out" />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

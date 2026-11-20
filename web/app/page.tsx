@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
-import { ErrorBox, Loading, RagPill, Sparkline, Variance } from "@/components/ui";
-import { BusinessSummary, fmt, getJSON, Overview, Signal, tr } from "@/lib/api";
+import { Fragment } from "react";
+import { CountUp, Reveal } from "@/components/motion";
+import { PageState, RagPill, Sparkline, Variance } from "@/components/ui";
+import { BusinessSummary, fmt, Overview, Signal, tr } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { useJSON } from "@/lib/useJSON";
 
 const TONE = { green: "neutral", amber: "warn", red: "crit" } as const;
 const DOT = { info: "bg-silver", watch: "bg-warn", alert: "bg-crit" } as const;
@@ -13,21 +15,12 @@ const DOT = { info: "bg-silver", watch: "bg-warn", alert: "bg-crit" } as const;
 export default function Cockpit() {
   const { t, lang } = useLang();
   const router = useRouter();
-  const [data, setData] = useState<Overview | null>(null);
-  const [signals, setSignals] = useState<Signal[]>([]);
-  const [error, setError] = useState("");
+  const overview = useJSON<Overview>("/alhail/overview");
+  const signalsRes = useJSON<Signal[]>("/alhail/signals");
+  const data = overview.data;
+  const signals = signalsRes.data ?? [];
 
-  useEffect(() => {
-    Promise.all([getJSON<Overview>("/alhail/overview"), getJSON<Signal[]>("/alhail/signals")])
-      .then(([o, s]) => {
-        setData(o);
-        setSignals(s);
-      })
-      .catch((e) => setError(String(e.message)));
-  }, []);
-
-  if (error) return <ErrorBox message={error} />;
-  if (!data) return <Loading />;
+  if (!data) return <PageState error={overview.error} waking={overview.waking} />;
 
   const name = (o: { name_en: string; name_ar: string }) => (lang === "ar" ? o.name_ar : o.name_en);
   const flagged = data.businesses.filter((b) => b.rag !== "green").sort((a, b) => a.ebitda_var_pct - b.ebitda_var_pct);
@@ -41,27 +34,28 @@ export default function Cockpit() {
     <div className="space-y-12">
       {/* Opening: the answer first, then the three numbers that back it */}
       <section className="grid items-end gap-8 xl:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="min-w-0">
+        <Reveal className="min-w-0">
           <p className="label">
             {t.groupPortfolio}, <span dir="ltr">{data.period}</span>
           </p>
           <h1 className="display mt-2 max-w-[22ch] text-primary">{t.headline(flagged.length, data.businesses.length)}</h1>
-        </div>
+        </Reveal>
         <dl className="grid grid-cols-3 gap-6 sm:gap-10">
-          <Figure label={t.groupRevenue} value={fmt(data.totals.revenue)} unit={t.aedM} delta={revenueVar} vs={t.vsBudget} />
-          <Figure label={t.groupEbitda} value={fmt(data.totals.ebitda)} unit={t.aedM} delta={ebitdaVar} vs={t.vsBudget} />
-          <Figure label={t.onTrack} value={`${onTrack}`} unit={`/ ${data.businesses.length} ${t.businesses}`} />
+          <Figure label={t.groupRevenue} value={data.totals.revenue} format={fmt} unit={t.aedM} delta={revenueVar} vs={t.vsBudget} delay={0.15} />
+          <Figure label={t.groupEbitda} value={data.totals.ebitda} format={fmt} unit={t.aedM} delta={ebitdaVar} vs={t.vsBudget} delay={0.25} />
+          <Figure label={t.onTrack} value={onTrack} format={(n) => `${Math.round(n)}`} unit={`/ ${data.businesses.length} ${t.businesses}`} delay={0.35} />
         </dl>
       </section>
 
       {flagged.length > 0 && (
-        <section aria-labelledby="attention" className="space-y-4">
+        <section aria-labelledby="attention" className="space-y-4" data-tour="attention">
           <h2 id="attention" className="title text-ink">
             {t.needAttention}
           </h2>
           <div className="grid gap-4 lg:grid-cols-2">
-            {flagged.map((b) => (
-              <Link key={b.id} href={`/business/${b.id}`} className="panel press-soft group relative block overflow-hidden p-6">
+            {flagged.map((b, i) => (
+              <Reveal key={b.id} delay={0.3 + i * 0.1}>
+              <Link href={`/business/${b.id}`} data-tour={`business-${b.id}`} className="panel press-soft group relative block h-full overflow-hidden p-6 transition-shadow hover:shadow-[0_1px_2px_rgb(10_23_38/0.05),0_16px_40px_-16px_rgb(10_23_38/0.22)]">
                 <span
                   className={`absolute inset-y-0 start-0 w-1 ${b.rag === "red" ? "bg-crit" : "bg-warn"}`}
                   aria-hidden="true"
@@ -76,26 +70,26 @@ export default function Cockpit() {
                 <div className="mt-5 flex items-end justify-between gap-4">
                   <div>
                     <div className={`figure text-[2.5rem] ${b.rag === "red" ? "text-crit" : "text-warn"}`} dir="ltr">
-                      {b.ebitda_var_pct > 0 ? "+" : ""}
-                      {b.ebitda_var_pct.toFixed(1)}%
+                      <CountUp value={b.ebitda_var_pct} delay={0.4 + i * 0.1} format={(n) => `${n > 0 ? "+" : ""}${n.toFixed(1)}%`} />
                     </div>
                     <div className="label mt-1.5">
                       {t.ebitda} {t.vsBudget}
                     </div>
                   </div>
                   <div className="min-w-0 max-w-[220px] flex-1">
-                    <Sparkline points={b.trend} tone={TONE[b.rag]} width={220} height={64} />
+                    <Sparkline points={b.trend} tone={TONE[b.rag]} width={220} height={64} delay={0.45 + i * 0.1} />
                   </div>
                 </div>
                 <p className="mt-5 border-t border-hairline pt-4 text-[0.9375rem] leading-relaxed text-ink/85">{tr(b, "reason", lang)}</p>
               </Link>
+              </Reveal>
             ))}
           </div>
         </section>
       )}
 
       <div className="grid gap-10 2xl:grid-cols-[minmax(0,1fr)_320px]">
-        <section aria-labelledby="by-sector" className="min-w-0 space-y-4">
+        <Reveal as="section" delay={0.5} className="min-w-0 space-y-4" labelledBy="by-sector">
           <div className="flex items-baseline justify-between gap-4">
             <h2 id="by-sector" className="title text-ink">
               {t.bySector}
@@ -133,7 +127,7 @@ export default function Cockpit() {
               </tbody>
             </table>
           </div>
-        </section>
+        </Reveal>
 
         <aside aria-labelledby="signals" className="min-w-0 space-y-4">
           <div className="flex items-baseline justify-between gap-4">
@@ -166,13 +160,29 @@ export default function Cockpit() {
   );
 }
 
-function Figure({ label, value, unit, delta, vs }: { label: string; value: string; unit: string; delta?: number; vs?: string }) {
+function Figure({
+  label,
+  value,
+  format,
+  unit,
+  delta,
+  vs,
+  delay = 0,
+}: {
+  label: string;
+  value: number;
+  format: (n: number) => string;
+  unit: string;
+  delta?: number;
+  vs?: string;
+  delay?: number;
+}) {
   return (
     <div className="min-w-0">
       <dt className="label">{label}</dt>
       <dd className="mt-2">
         <span className="figure text-[1.75rem] text-primary sm:text-[2.125rem]" dir="ltr">
-          {value}
+          <CountUp value={value} format={format} delay={delay} />
         </span>
         <span className="ms-1.5 text-[0.8125rem] text-muted">{unit}</span>
         {delta !== undefined && (
@@ -212,7 +222,7 @@ function Row({ b, label, onOpen }: { b: BusinessSummary; label: string; onOpen: 
         </div>
       </td>
       <td className="hidden px-6 py-3.5 md:table-cell">
-        <Sparkline points={b.trend} tone={TONE[b.rag]} width={132} height={34} />
+        <Sparkline points={b.trend} tone={TONE[b.rag]} width={132} height={34} delay={0.6} />
       </td>
       <td className="px-5 py-3.5 text-end">
         <RagPill rag={b.rag} />

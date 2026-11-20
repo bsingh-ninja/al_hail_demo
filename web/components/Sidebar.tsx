@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -54,6 +55,7 @@ export default function Sidebar() {
     <div className="flex items-center gap-2">
       <button
         onClick={() => setLang(lang === "en" ? "ar" : "en")}
+        data-tour="lang-toggle"
         className="h-9 rounded-lg bg-white/8 px-3 text-[13px] font-semibold text-sidebar-fg ring-1 ring-white/12 hover:bg-white/14"
       >
         {lang === "en" ? "العربية" : "English"}
@@ -102,14 +104,24 @@ export default function Sidebar() {
               href={n.href}
               aria-current={on ? "page" : undefined}
               className={`press-soft relative flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-[14.5px] transition-colors ${
-                on ? "bg-white/10 font-semibold text-white" : "text-sidebar-fg/80 hover:bg-white/6 hover:text-white"
+                on ? "font-semibold text-white" : "text-sidebar-fg/80 hover:bg-white/6 hover:text-white"
               }`}
             >
-              {on && <span className="absolute inset-y-2 start-0 hidden w-[3px] rounded-full bg-accent lg:block" aria-hidden="true" />}
-              <svg viewBox="0 0 24 24" className="size-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true">
+              {on && (
+                // One highlight that slides between items when the page changes
+                <motion.span
+                  layoutId="nav-active"
+                  transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                  className="absolute inset-0 rounded-lg bg-white/10"
+                  aria-hidden="true"
+                >
+                  <span className="absolute inset-y-2 start-0 hidden w-[3px] rounded-full bg-accent lg:block" />
+                </motion.span>
+              )}
+              <svg viewBox="0 0 24 24" className="relative size-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true">
                 {ICONS[n.key]}
               </svg>
-              {n.label}
+              <span className="relative">{n.label}</span>
             </Link>
           );
         })}

@@ -1,9 +1,11 @@
 "use client";
 
+import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import Cited from "@/components/Cited";
 import { useDocSheet } from "@/components/DocumentSheet";
+import { EASE_OUT, Reveal } from "@/components/motion";
 import { RagPill, SeverityPill, Variance } from "@/components/ui";
 import { API, BoardPack, fmt, getJSON, postJSON } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
@@ -57,13 +59,15 @@ export default function BoardPackPage() {
           <p className="mt-3 max-w-[56ch] text-[1.0625rem] leading-relaxed text-muted">{t.boardPackIntro}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={draft}
-            disabled={busy}
-            className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50"
-          >
-            {busy ? t.drafting : pack ? t.redraftPack : t.draftPack}
-          </button>
+          {pack && !busy && (
+            <button
+              onClick={draft}
+              data-tour="draft"
+              className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg"
+            >
+              {t.redraftPack}
+            </button>
+          )}
           {pack && !busy && (
             <a
               href={`${API}/alhail/board-pack/docx?period=${PERIOD}&lang=${lang}`}
@@ -77,10 +81,8 @@ export default function BoardPackPage() {
 
       {error && <div className="rounded-md border border-crit/30 bg-crit/5 p-3 text-sm text-crit">{error}</div>}
 
-      {busy && <PaperSkeleton label={t.drafting} />}
-      {!busy && loaded && !pack && (
-        <div className="rounded-lg border border-dashed border-border bg-surface p-10 text-center text-sm text-muted">{t.packEmpty}</div>
-      )}
+      {!loaded && !busy && <PaperSkeleton />}
+      {(busy || (loaded && !pack)) && <Outline drafting={busy} onDraft={draft} />}
       {!busy && pack && <Paper key={arrived} pack={pack} />}
 
       <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4">
@@ -92,7 +94,7 @@ export default function BoardPackPage() {
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-x-6 sm:grid-cols-[56px_minmax(0,1fr)]">
+    <Reveal as="section" delay={0.15 + n * 0.12} className="grid gap-x-6 sm:grid-cols-[56px_minmax(0,1fr)]">
       <div className="num text-[44px] font-extrabold leading-none text-accent sm:text-end" aria-hidden="true">
         {n}
       </div>
@@ -100,7 +102,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
         <h2 className="pt-1 text-lg font-bold text-primary">{title}</h2>
         {children}
       </div>
-    </section>
+    </Reveal>
   );
 }
 
@@ -108,7 +110,7 @@ function Paper({ pack }: { pack: BoardPack }) {
   const { t } = useLang();
   const { openDoc } = useDocSheet();
   return (
-    <article className="paper-arrive rounded-sm bg-surface px-5 py-8 shadow-[0_1px_2px_rgba(6,43,73,0.06),0_12px_32px_-12px_rgba(6,43,73,0.18)] ring-1 ring-border sm:px-12 sm:py-12">
+    <Reveal as="article" className="rounded-sm bg-surface px-5 py-8 shadow-[0_1px_2px_rgba(6,43,73,0.06),0_12px_32px_-12px_rgba(6,43,73,0.18)] ring-1 ring-border sm:px-12 sm:py-12">
       <header className="space-y-4 border-b-2 border-accent pb-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -289,19 +291,86 @@ function Paper({ pack }: { pack: BoardPack }) {
           ))}
         </ul>
       </footer>
-    </article>
+    </Reveal>
   );
 }
 
-function PaperSkeleton({ label }: { label: string }) {
+function PaperSkeleton() {
   return (
     <div className="space-y-4 rounded-sm bg-surface px-5 py-10 ring-1 ring-border sm:px-12" aria-busy="true">
-      <p className="text-sm font-semibold text-muted">{label}</p>
-      <div className="h-9 w-2/3 animate-pulse rounded bg-surface-2" />
-      <div className="h-4 w-1/2 animate-pulse rounded bg-surface-2" />
+      <div className="skeleton h-9 w-2/3" />
+      <div className="skeleton h-4 w-1/2" />
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-4 animate-pulse rounded bg-surface-2" style={{ width: `${90 - i * 12}%` }} />
+        <div key={i} className="skeleton h-4" style={{ width: `${90 - i * 12}%` }} />
       ))}
     </div>
+  );
+}
+
+/** Before a draft exists: what the pack will contain, and the button to draft it.
+ *  While drafting: the same outline, with the time elapsed, until the pack arrives. */
+function Outline({ drafting, onDraft }: { drafting: boolean; onDraft: () => void }) {
+  const { t } = useLang();
+  const reduce = useReducedMotion();
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!drafting) return setSeconds(0);
+    const start = Date.now();
+    const id = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 250);
+    return () => clearInterval(id);
+  }, [drafting]);
+  const sections = [t.s1, t.s2, t.s3, t.s4, t.s5];
+  return (
+    <Reveal className="panel overflow-hidden" >
+      <div className="grid gap-8 p-6 sm:p-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-center">
+        <div className="min-w-0" aria-live="polite">
+          {drafting ? (
+            <>
+              <p className="label flex items-center gap-2">
+                <span className="waking-dot size-2 rounded-full bg-accent" aria-hidden="true" />
+                {t.drafting} <span className="num" dir="ltr">{t.seconds(seconds)}</span>
+              </p>
+              <h2 className="title mt-3 text-ink">{t.draftingTitle}</h2>
+              <p className="mt-2 max-w-[44ch] text-[0.9375rem] leading-relaxed text-muted">{t.draftingBody}</p>
+            </>
+          ) : (
+            <>
+              <p className="label">{t.packEmptyLabel}</p>
+              <h2 className="title mt-3 text-ink">{t.packEmptyTitle}</h2>
+              <p className="mt-2 max-w-[44ch] text-[0.9375rem] leading-relaxed text-muted">{t.packEmptyBody}</p>
+              <button
+                onClick={onDraft}
+                data-tour="draft"
+                className="mt-6 h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg"
+              >
+                {t.draftPack}
+              </button>
+            </>
+          )}
+        </div>
+        <ol className="space-y-2.5">
+          {sections.map((name, i) => (
+            <motion.li
+              key={name}
+              initial={{ opacity: 0, x: reduce ? 0 : 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 + i * 0.06, ease: EASE_OUT }}
+              className="flex items-start gap-4 rounded-lg bg-surface-2/70 px-4 py-3"
+            >
+              <span className="num w-5 pt-px text-[1.375rem] font-extrabold leading-none text-accent">{i + 1}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.9375rem] font-semibold text-ink">{name}</span>
+                {drafting && (
+                  <span className="mt-2 block space-y-1.5" aria-hidden="true">
+                    <span className="skeleton skeleton-strong block h-2" style={{ width: `${82 - i * 7}%`, animationDelay: `${i * 120}ms` }} />
+                    <span className="skeleton skeleton-strong block h-2" style={{ width: `${58 - i * 5}%`, animationDelay: `${i * 120 + 60}ms` }} />
+                  </span>
+                )}
+              </span>
+            </motion.li>
+          ))}
+        </ol>
+      </div>
+    </Reveal>
   );
 }

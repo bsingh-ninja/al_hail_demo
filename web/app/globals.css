@@ -246,6 +246,72 @@ button:not(:disabled):active {
   animation: toast-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Loading: a soft sweep across placeholder blocks (static under reduced motion) */
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--surface-2) 0%, color-mix(in srgb, var(--surface-2) 55%, var(--surface)) 50%, var(--surface-2) 100%);
+  background-size: 220% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+.skeleton-strong {
+  background-image: linear-gradient(90deg, var(--border) 0%, color-mix(in srgb, var(--border) 40%, var(--surface)) 50%, var(--border) 100%);
+}
+@keyframes skeleton-sweep {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+/* Waking: a calm breathing dot (about 1.5 s a cycle, well away from the 0.2 Hz range) */
+.waking-dot {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  animation: waking 1.5s ease-out infinite;
+}
+@keyframes waking {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  to { box-shadow: 0 0 0 14px transparent; }
+}
+
+/* Streaming answer: a caret after the last line while text arrives */
+.streaming > :is(p, h2, h3):last-child::after,
+.streaming > :is(ul, ol):last-child > li:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-inline-start: 3px;
+  vertical-align: -0.18em;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: caret 1s steps(2, start) infinite;
+}
+@keyframes caret {
+  to { visibility: hidden; }
+}
+
+.step-spinner {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Presenter mode */
+.presenter-material {
+  background: color-mix(in srgb, #062b49 86%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  color: var(--sidebar-fg);
+  box-shadow: 0 18px 50px -16px rgb(4 16 26 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+.tour-ring {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 0 7px color-mix(in srgb, var(--accent) 22%, transparent);
+  animation: tour-pulse 2.2s ease-in-out infinite;
+}
+@keyframes tour-pulse {
+  50% { box-shadow: 0 0 0 2px var(--accent), 0 0 0 12px color-mix(in srgb, var(--accent) 8%, transparent); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -261,6 +327,10 @@ button:not(:disabled):active {
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .presenter-material {
+    background: #062b49;
+    backdrop-filter: none;
+  }
   .sheet-material {
     background: var(--surface);
     backdrop-filter: none;

@@ -1,8 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import Cited from "@/components/Cited";
-import { Card } from "@/components/ui";
+import { EASE_OUT, Reveal, SPRING } from "@/components/motion";
 import { API } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -36,6 +37,7 @@ const TOOL_LABEL: Record<string, string> = {
 
 export default function CopilotPage() {
   const { t, lang } = useLang();
+  const reduce = useReducedMotion();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -43,8 +45,8 @@ export default function CopilotPage() {
   const controller = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [turns]);
+    endRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "end" });
+  }, [turns, reduce]);
 
   const update = (fn: (a: Turn) => Turn) =>
     setTurns((prev) => [...prev.slice(0, -1), fn(prev[prev.length - 1])]);
@@ -136,19 +138,20 @@ export default function CopilotPage() {
     <div className="mx-auto flex max-w-[860px] flex-col gap-6">
       {turns.length === 0 ? (
         <section className="space-y-8 pt-[6vh]">
-          <div>
+          <Reveal>
             <p className="label">{t.copilot}</p>
             <h1 className="display mt-2 max-w-[20ch] text-primary">{t.copilotHeadline}</h1>
             <p className="mt-3 max-w-[60ch] text-[1.0625rem] leading-relaxed text-muted">{t.copilotIntro}</p>
-          </div>
-          {composer(true)}
-          <div>
+          </Reveal>
+          <Reveal delay={0.08}>{composer(true)}</Reveal>
+          <Reveal delay={0.16}>
             <p className="label mb-2">{t.tryAsking}</p>
             <ul className="divide-y divide-hairline">
               {[...SUGGESTIONS[lang], ...(lang === "en" ? [] : SUGGESTIONS.en.slice(0, 1))].map((s) => (
                 <li key={s}>
                   <button
                     onClick={() => ask(s)}
+                    data-tour={/Egypt|مصر/.test(s) ? "suggest-egypt" : undefined}
                     className="press-soft flex w-full items-center gap-3 py-3.5 text-start text-[0.9375rem] text-ink hover:text-primary"
                   >
                     <svg viewBox="0 0 24 24" className="size-4 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -159,7 +162,7 @@ export default function CopilotPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         </section>
       ) : (
         <div className="flex items-baseline justify-between gap-4">
@@ -171,49 +174,85 @@ export default function CopilotPage() {
       )}
 
       <div className="space-y-4">
-        {turns.map((turn, i) =>
-          turn.role === "user" ? (
-            <div key={i} className="flex justify-end">
+        {turns.map((turn, i) => {
+          const streaming = busy && i === turns.length - 1;
+          return turn.role === "user" ? (
+            <motion.div
+              key={i}
+              className="flex justify-end"
+              initial={{ opacity: 0, y: reduce ? 0 : 8, scale: reduce ? 1 : 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={SPRING}
+              style={{ transformOrigin: "100% 100%" }}
+            >
               <div className="max-w-[80%] rounded-2xl rounded-ee-md bg-primary px-4 py-2.5 text-[0.9375rem] text-primary-fg">{turn.content}</div>
-            </div>
+            </motion.div>
           ) : (
-            <Card key={i} className="p-4">
+            <motion.div
+              key={i}
+              className="panel p-5"
+              initial={{ opacity: 0, y: reduce ? 0 : 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.05, ease: EASE_OUT }}
+            >
               {turn.tools && turn.tools.length > 0 && (
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {turn.tools.map((s) => (
-                    <span
-                      key={s.id}
-                      title={JSON.stringify(s.input)}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg px-2 py-1 text-xs text-muted"
-                      dir="ltr"
-                    >
-                      <span className={`size-1.5 rounded-full ${s.error ? "bg-crit" : s.count === undefined ? "animate-pulse bg-warn" : "bg-ok"}`} />
-                      {TOOL_LABEL[s.name] ?? s.name}
-                      {Object.values(s.input).filter((v) => v !== null && v !== "").length > 0 && (
-                        <span className="text-ink/70">
-                          · {Object.values(s.input).filter((v) => v !== null && v !== "").join(", ")}
-                        </span>
-                      )}
-                      {s.count !== undefined && <span>· {s.count}</span>}
-                    </span>
-                  ))}
-                </div>
+                <ul className="mb-3 flex flex-wrap gap-2" aria-label={t.checked}>
+                  <AnimatePresence initial={false}>
+                    {turn.tools.map((s) => (
+                      <motion.li
+                        key={s.id}
+                        layout={!reduce}
+                        initial={{ opacity: 0, y: reduce ? 0 : 4, scale: reduce ? 1 : 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={SPRING}
+                        title={JSON.stringify(s.input)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg px-2 py-1 text-xs text-muted"
+                        dir="ltr"
+                      >
+                        <StepIcon state={s.error ? "error" : s.count === undefined ? "running" : "done"} />
+                        {TOOL_LABEL[s.name] ?? s.name}
+                        {Object.values(s.input).filter((v) => v !== null && v !== "").length > 0 && (
+                          <span className="text-ink/70">
+                            · {Object.values(s.input).filter((v) => v !== null && v !== "").join(", ")}
+                          </span>
+                        )}
+                        {s.count !== undefined && <span>· {s.count}</span>}
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
               )}
               {turn.content ? (
                 <div className="prose-copilot text-[0.9375rem] leading-relaxed">
-                  <Cited text={turn.content} allowed={turn.cites} />
+                  <Cited text={turn.content} allowed={turn.cites} className={streaming ? "streaming" : ""} />
                 </div>
               ) : (
-                !turn.error && <div className="animate-pulse text-sm text-muted">{t.thinking}</div>
+                !turn.error && (
+                  <div className="space-y-2.5" aria-live="polite">
+                    <div className="text-sm text-muted">{t.thinking}</div>
+                    <div className="skeleton h-3.5 w-[86%]" />
+                    <div className="skeleton h-3.5 w-[64%]" />
+                  </div>
+                )
               )}
               {turn.error && <div className="mt-2 rounded-md bg-crit/5 p-2 text-sm text-crit">{turn.error}</div>}
-            </Card>
-          ),
-        )}
+            </motion.div>
+          );
+        })}
         <div ref={endRef} />
       </div>
 
       {turns.length > 0 && composer(false)}
     </div>
+  );
+}
+
+/** Tool step status: a small spinner while the lookup runs, then a check (or a cross on error). */
+function StepIcon({ state }: { state: "running" | "done" | "error" }) {
+  if (state === "running") return <span className="step-spinner size-3 rounded-full border-[1.5px] border-warn/30 border-t-warn" aria-label="running" />;
+  return (
+    <svg viewBox="0 0 12 12" className={`size-3 ${state === "done" ? "text-ok" : "text-crit"}`} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      {state === "done" ? <motion.path d="M2.5 6.2l2.2 2.2 4.8-4.9" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.25 }} /> : <path d="M3 3l6 6M9 3l-6 6" />}
+    </svg>
   );
 }
