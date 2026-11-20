@@ -298,7 +298,7 @@ button:not(:disabled):active {
 
 /* Presenter mode */
 .presenter-material {
-  background: color-mix(in srgb, #062b49 86%, transparent);
+  background: color-mix(in srgb, #062b49 96%, transparent);
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
   color: var(--sidebar-fg);
