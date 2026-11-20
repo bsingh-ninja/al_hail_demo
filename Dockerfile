@@ -26,8 +26,12 @@ COPY --from=web /web web/
 RUN chown -R user:user /app
 USER user
 ENV HOME=/home/user \
+    PGDATA=/home/user/pgdata \
     DATABASE_URL=postgresql://demo@127.0.0.1:5432/demos \
     API_PORT=8000 \
     NEXT_TELEMETRY_DISABLED=1
+# Bake the seeded database and source PDFs into the image: a cold start only starts the servers,
+# and every container begins from this same fresh data.
+RUN bash deploy/run.sh --seed-only
 EXPOSE 7860
 CMD ["bash", "deploy/run.sh"]
