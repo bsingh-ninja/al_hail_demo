@@ -1,9 +1,30 @@
 name: al-hail-demo
 
+# Server:     cp .env.example .env  (add GEMINI_API_KEY), then  docker compose up -d --build
+#             The demo is served on http://<host>:3034 (Postgres, API and web app run inside one container).
+# Local dev:  ./start.sh starts only the db service below and runs the API and web app on the host.
+
 services:
+  app:
+    build:
+      context: .
+      args:
+        DEBIAN_MIRROR: ${DEBIAN_MIRROR:-ftp.de.debian.org}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    image: al-hail-demo:latest
+    container_name: alhail-demo-app
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+    ports:
+      - "${APP_PORT:-3034}:7860"
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
     container_name: alhail-demo-db
+    profiles: ["dev"]
     environment:
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo
